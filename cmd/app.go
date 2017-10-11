@@ -34,7 +34,6 @@ func runCheck(f string) {
 	// Also think about supporting multiple versions of an app.
 
 	summary := controls.RunGroup()
-	fmt.Println("app: got here")
 
 	// if we successfully ran some tests and it's json format, ignore the warnings
 	if (summary.Fail > 0 || summary.Warn > 0 || summary.Pass > 0) && jsonFmt {

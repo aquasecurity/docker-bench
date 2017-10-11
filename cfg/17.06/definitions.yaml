@@ -50,8 +50,7 @@ groups:
 
   - id: 1.5
     description: "Ensure auditing is configured for the docker daemon (Scored)"
-    # audit: "auditctl -l | grep /usr/bin/docker"
-    audit: "echo | grep /usr/bin/docker"
+    audit: "auditctl -l | grep /usr/bin/docker"
     tests:
       test_items:
       - flag: "/usr/bin/docker"
@@ -67,160 +66,159 @@ groups:
         service auditd restart"
     scored: true
 
-    #  - id: 1.6
-    #description: "Ensure auditing is configured for Docker files and directories - 
-    # /var/lib/docker (Scored)"
-    #audit: "auditctl -l | grep /var/lib/docker"
-    #type: manual
-      #       tests:
-      #         test_items:
-      #         - flag: "/var/lib/docker"
-      #           compare:
-      #             op: has
-      #             value: "/var/lib/docker"
-      #           set: true
-      #       remediation: "Add a rule for /var/lib/docker directory.
-      #       For example,
-      #       Add the line as below in /etc/audit/audit.rules file:\n
-      #               -w /var/lib/docker -k docker\n
-      #       Then, restart the audit daemon. For example,\n
-      #               service auditd restart"
-      #       scored: true
-      # 
-      #     - id: 1.7
-      #       description: "Ensure auditing is configured for Docker files and directories -
-      #       /etc/docker (Scored)"
-      #       audit: "auditctl -l | grep /etc/docker"
-      #       tests:
-      #         test_items:
-      #         - flag: "/etc/docker"
-      #           compare:
-      #             op: has
-      #             value: "/etc/docker"
-      #           set: true
-      #       remediation: "Add a rule for /etc/docker directory.
-      #       For example,
-      #       Add the line as below in /etc/audit/audit.rules file:\n
-      #               -w /etc/docker -k docker\n
-      #       Then, restart the audit daemon. For example,\n
-      #               service auditd restart"
-      #       scored: true
-      # 
-      #       # Revisit this check
-      #     - id: 1.8
-      #       description: "Ensure auditing is configured for Docker files and directories -
-      #       docker.service (Scored)"
-      #       audit: "auditctl -l | grep docker.service"
-      #       tests:
-      #         test_items:
-      #         - flag: "docker.service"
-      #           compare:
-      #             op: has
-      #             value: "docker.service"
-      #           set: true
-      #       remediation: "If the file exists, add a rule for it.
-      #       For example,
-      #       Add the line as below in /etc/audit/audit.rules file:\n
-      #               -w /usr/lib/systemd/system/docker.service -k docker\n
-      #       Then, restart the audit daemon. For example,\n
-      #               service auditd restart"
-      #       scored: true
-      # 
-      #       # Revisit this check
-      #     - id: 1.9
-      #       description: "Ensure auditing is configured for Docker files and directories -
-      #       docker.socket (Scored)"
-      #       audit: "auditctl -l | grep docker.socket"
-      #       tests:
-      #         test_items:
-      #         - flag: "docker.socket"
-      #           compare:
-      #             op: has
-      #             value: "docker.socket"
-      #           set: true
-      #       remediation: "If the file exists, add a rule for it.
-      #       For example,
-      #       Add the line as below in /etc/audit/audit.rules file:\n
-      #               -w /usr/lib/systemd/system/docker.socket -k docker\n
-      #       Then, restart the audit daemon. For example,\n
-      #               service auditd restart"
-      #       scored: true
-      # 
-      #     - id: 1.10
-      #       description: "Ensure auditing is configured for Docker files and directories -
-      #       /etc/default/docker (Scored)"
-      #       audit: "auditctl -l | grep /etc/default/docker"
-      #       tests:
-      #         test_items:
-      #         - flag: "/etc/default/docker"
-      #           compare:
-      #             op: has
-      #             value: "/etc/default/docker"
-      #           set: true
-      #       remediation: "Add a rule for /etc/default/docker file.
-      #       For example,
-      #       Add the line as below in /etc/audit/audit.rules file:\n
-      #               -w /etc/default/docker -k docker\n
-      #       Then, restart the audit daemon. For example,\n
-      #               service auditd restart"
-      #       scored: true
-      # 
-      #     - id: 1.11
-      #       description: "Ensure auditing is configured for Docker files and directories -
-      #       /etc/docker/daemon.json (Scored)"
-      #       audit: "auditctl -l | grep /etc/docker/daemon.json"
-      #       tests:
-      #         test_items:
-      #         - flag: "/etc/docker/daemon.json"
-      #           compare:
-      #             op: has
-      #             value: "/etc/docker/daemon.json"
-      #           set: true
-      #       remediation: "Add a rule for /etc/docker/daemon.json file.
-      #       For example,
-      #       Add the line as below in /etc/audit/audit.rules file:\n
-      #               -w /etc/docker/daemon.json -k docker\n
-      #               Then, restart the audit daemon. For example,\n
-      #               service auditd restart"
-      #       scored: true
-      # 
-      #     - id: 1.12
-      #       description: "Ensure auditing is configured for Docker files and directories -
-      #       /usr/bin/docker-containerd (Scored)"
-      #       audit: "auditctl -l | grep /usr/bin/docker-containerd"
-      #       tests:
-      #         test_items:
-      #         - flag: "/usr/bin/docker-containerd"
-      #           compare:
-      #             op: has
-      #             value: "/usr/bin/docker-containerd"
-      #           set: true
-      #       remediation: "Add a rule for /usr/bin/docker-containerd file.
-      #       For example,
-      #       Add the line as below in /etc/audit/audit.rules file:\n
-      #               -w /usr/bin/docker-containerd -k docker\n
-      #       Then, restart the audit daemon. For example,\n
-      #               service auditd restart"
-      #       scored: true
-      # 
-      #     - id: 1.13
-      #       description: "Ensure auditing is configured for Docker files and directories -
-      #       /usr/bin/docker-runc (Scored)"
-      #       audit: "auditctl -l | grep /usr/bin/docker-runc"
-      #       tests:
-      #         test_items:
-      #         - flag: "/usr/bin/docker-runc"
-      #           compare:
-      #             op: has
-      #             value: "/usr/bin/docker-runc"
-      #           set: true
-      #       remediation: "Add a rule for /usr/bin/docker-runc file.
-      #       For example,
-      #       Add the line as below in /etc/audit/audit.rules file:\n
-      #               -w /usr/bin/docker-runc -k docker\n
-      #       Then, restart the audit daemon. For example,\n
-      #               service auditd restart"
-      #       scored: true
+  - id: 1.6
+    description: "Ensure auditing is configured for Docker files and directories - 
+    /var/lib/docker (Scored)"
+    audit: "auditctl -l | grep /var/lib/docker"
+    tests:
+      test_items:
+      - flag: "/var/lib/docker"
+        compare:
+          op: has
+          value: "/var/lib/docker"
+        set: true
+    remediation: "Add a rule for /var/lib/docker directory.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /var/lib/docker -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+  - id: 1.7
+    description: "Ensure auditing is configured for Docker files and directories -
+    /etc/docker (Scored)"
+    audit: "auditctl -l | grep /etc/docker"
+    tests:
+      test_items:
+      - flag: "/etc/docker"
+        compare:
+          op: has
+          value: "/etc/docker"
+        set: true
+    remediation: "Add a rule for /etc/docker directory.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /etc/docker -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+    # Revisit this check
+  - id: 1.8
+    description: "Ensure auditing is configured for Docker files and directories -
+    docker.service (Scored)"
+    audit: "auditctl -l | grep docker.service"
+    tests:
+      test_items:
+      - flag: "docker.service"
+        compare:
+          op: has
+          value: "docker.service"
+        set: true
+    remediation: "If the file exists, add a rule for it.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /usr/lib/systemd/system/docker.service -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+    # Revisit this check
+  - id: 1.9
+    description: "Ensure auditing is configured for Docker files and directories -
+    docker.socket (Scored)"
+    audit: "auditctl -l | grep docker.socket"
+    tests:
+      test_items:
+      - flag: "docker.socket"
+        compare:
+          op: has
+          value: "docker.socket"
+        set: true
+    remediation: "If the file exists, add a rule for it.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /usr/lib/systemd/system/docker.socket -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+  - id: 1.10
+    description: "Ensure auditing is configured for Docker files and directories -
+    /etc/default/docker (Scored)"
+    audit: "auditctl -l | grep /etc/default/docker"
+    tests:
+      test_items:
+      - flag: "/etc/default/docker"
+        compare:
+          op: has
+          value: "/etc/default/docker"
+        set: true
+    remediation: "Add a rule for /etc/default/docker file.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /etc/default/docker -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+  - id: 1.11
+    description: "Ensure auditing is configured for Docker files and directories -
+    /etc/docker/daemon.json (Scored)"
+    audit: "auditctl -l | grep /etc/docker/daemon.json"
+    tests:
+      test_items:
+      - flag: "/etc/docker/daemon.json"
+        compare:
+          op: has
+          value: "/etc/docker/daemon.json"
+        set: true
+    remediation: "Add a rule for /etc/docker/daemon.json file.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /etc/docker/daemon.json -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+  - id: 1.12
+    description: "Ensure auditing is configured for Docker files and directories -
+    /usr/bin/docker-containerd (Scored)"
+    audit: "auditctl -l | grep /usr/bin/docker-containerd"
+    tests:
+      test_items:
+      - flag: "/usr/bin/docker-containerd"
+        compare:
+          op: has
+          value: "/usr/bin/docker-containerd"
+        set: true
+    remediation: "Add a rule for /usr/bin/docker-containerd file.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /usr/bin/docker-containerd -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+  - id: 1.13
+    description: "Ensure auditing is configured for Docker files and directories -
+    /usr/bin/docker-runc (Scored)"
+    audit: "auditctl -l | grep /usr/bin/docker-runc"
+    tests:
+      test_items:
+      - flag: "/usr/bin/docker-runc"
+        compare:
+          op: has
+          value: "/usr/bin/docker-runc"
+        set: true
+    remediation: "Add a rule for /usr/bin/docker-runc file.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /usr/bin/docker-runc -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
 
       #    - id: 1.
       #      description: ""

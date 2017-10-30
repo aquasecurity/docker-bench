@@ -33,7 +33,14 @@ func runCheck(f string) {
 	// In that case we will have to do version verification.
 	// Also think about supporting multiple versions of an app.
 
-	summary := controls.RunGroup()
+	var summary check.Summary
+
+	if checkList != "" {
+		ids := util.CleanIDs(checkList)
+		summary = controls.RunChecks(ids...)
+	} else {
+		summary = controls.RunGroup()
+	}
 
 	// if we successfully ran some tests and it's json format, ignore the warnings
 	if (summary.Fail > 0 || summary.Warn > 0 || summary.Pass > 0) && jsonFmt {
@@ -45,5 +52,4 @@ func runCheck(f string) {
 	} else {
 		util.PrettyPrint(controls, summary)
 	}
-
 }

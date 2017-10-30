@@ -27,9 +27,10 @@ import (
 var (
 	dbDir = "appdb"
 
-	cfgFile string
-	name    string
-	jsonFmt bool
+	cfgFile   string
+	checkList string
+	name      string
+	jsonFmt   bool
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -76,6 +77,14 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&jsonFmt, "json", false, "Prints the results as JSON")
 	viper.BindPFlag("json", RootCmd.Flags().Lookup("json"))
 
+	RootCmd.PersistentFlags().StringVarP(
+		&checkList,
+		"check",
+		"c",
+		"",
+		`A comma-delimited list of checks to run as specified in CIS document. Example --check="1.1.1,1.1.2"`,
+	)
+
 	goflag.CommandLine.VisitAll(func(goflag *goflag.Flag) {
 		RootCmd.PersistentFlags().AddGoFlag(goflag)
 	})
@@ -89,8 +98,8 @@ func initConfig() {
 	}
 
 	viper.SetConfigName(".docker-bench") // name of config file (without extension)
-	viper.AddConfigPath("$HOME")      // adding home directory as first search path
-	viper.AutomaticEnv()              // read in environment variables that match
+	viper.AddConfigPath("$HOME")         // adding home directory as first search path
+	viper.AutomaticEnv()                 // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {

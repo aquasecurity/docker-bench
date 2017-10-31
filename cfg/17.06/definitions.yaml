@@ -220,15 +220,294 @@ groups:
     service auditd restart"
     scored: true
 
-      #    - id: 1.
-      #      description: ""
-      #      audit: ""
-      #      tests:
-      #        test_items:
-      #        - flag: ""
-      #          compare:
-      #            op: has
-      #            value: ""
-      #          set: true
-      #      remediation: ""
-      #      scored: true
+- id: 2
+  description: "Docker daemon configuration"
+  checks:
+  - id: 2.1
+    description: "Ensure network traffic is restricted between containers on the
+    default bridge (Scored)"
+    audit: "docker network ls --quiet | xargs docker network inspect --format '{{ .Name }}: {{ .Options }}'"
+    tests:
+      test_items:
+      - flag: "com.docker.network.bridge.enable_icc:false"
+        compare:
+          op: has
+          value: "com.docker.network.bridge.enable_icc:false"
+        set: true
+    remediation: |
+      Run the docker in daemon mode and pass --icc=false as an argument.
+      For Example,
+      dockerd --icc=false
+      Alternatively, you can follow the Docker documentation and create a custom network and
+      only join containers that need to communicate to that custom network. The --icc
+      parameter only applies to the default docker bridge, if custom networks are used then the
+      approach of segmenting networks should be adopted instead.
+    scored: true
+
+  - id: 2.2
+    description: "Ensure the logging level is set to 'info' (Scored)"
+    audit: "ps -ef | grep docker"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "--log-level"
+        set: false
+      - flag: "--log-level"
+        compare:
+          op: eq
+          value: "info"
+        set: true
+    remediation: |
+      ps -ef | grep docker
+    scored: true
+
+  - id: 2.3
+    description: "Ensure Docker is allowed to make changes to iptables (Scored)"
+    audit: "ps -ef | grep dockerd"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "--iptables"
+        set: false
+      - flag: "--iptables"
+        compare:
+          op: eq
+          value: true
+        set: true
+    remediation: |
+      Do not run the Docker daemon with --iptables=false parameter. For example, do not
+      start the Docker daemon as below:
+      dockerd --iptables=false
+    scored: true
+
+  - id: 2.4
+    description: "Ensure insecure registries are not used (Scored)"
+    audit: "ps -ef | grep dockerd"
+    tests:
+      test_items:
+      - flag: "--insecure-registry"
+        set: false
+    remediation: |
+      Do not use any insecure registries.
+      For example, do not start the Docker daemon as below:
+      dockerd --insecure-registry 10.1.0.0/16
+    scored: true
+
+  - id: 2.5
+    description: "Ensure aufs storage driver is not used (Scored)"
+    audit: docker info | grep -e "^Storage Driver:\s*aufs\s*$"
+    tests:
+      test_items:
+      - flag: "storage-driver"
+        compare:
+          op: eq
+          value: ""
+        set: true
+    remediation: |
+      Do not explicitly use aufs as storage driver.
+      For example, do not start Docker daemon as below:
+      dockerd --storage-driver aufs
+    scored: true
+
+  - id: 2.6
+    description: "Ensure TLS authentication for Docker daemon is configured (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--tlsverify"
+        set: true
+      - flag: "--tlscacert"
+        set: true
+      - flag: "--tlscert"
+        set: true
+      - flag: "--tlskey"
+        set: true
+    remediation: |
+      Follow the steps mentioned in the Docker documentation or other references.
+    scored: true
+
+  - id: 2.7
+    description: "Ensure the default ulimit is configured appropriately (Not Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--default-ulimit"
+        set: true
+    remediation: |
+      Run the docker in daemon mode and pass --default-ulimit as argument with respective
+      ulimits as appropriate in your environment.
+      For Example,
+      dockerd --default-ulimit nproc=1024:2048 --default-ulimit nofile=100:200
+    scored: false
+
+  - id: 2.8
+    description: "Enable user namespace support (Scored)"
+    audit: docker info --format '{{ .SecurityOptions }}'
+    tests:
+      test_items:
+      - flag: "userns"
+        compare:
+          op: has
+          value: "userns"
+        set: true
+    remediation: |
+      Please consult Docker documentation for various ways in which this can be configured
+      depending upon your requirements. Your steps might also vary based on platform - For
+      example, on Red Hat, sub-UIDs and sub-GIDs mapping creation does not work
+      automatically. You might have to create your own mapping.
+      However, the high-level steps are as below:
+      Step 1: Ensure that the files /etc/subuid and /etc/subgid exist.
+      touch /etc/subuid /etc/subgid
+      Step 2: Start the docker daemon with --userns-remap flag
+      dockerd --userns-remap=default
+    scored: true
+
+  - id: 2.9
+    description: "Ensure the default cgroup usage has been confirmed (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "--cgroup-parent"
+        set: false
+      - flag: "--cgroup-parent"
+        compare:
+          op: nothave
+          value: "/docker"
+        set: true
+    remediation: |
+      The default setting is good enough and can be left as-is. If you want to specifically set a non-
+      default cgroup, pass --cgroup-parent parameter to the docker daemon when starting it.
+      For Example,
+      dockerd --cgroup-parent=/foobar
+    scored: true
+
+  - id: 2.10
+    description: "Ensure base device size is not changed until needed (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--storage-opt"
+        set: false
+    remediation: |
+      Do not set --storage-opt dm.basesize until needed.
+    scored: true
+
+  - id: 2.11
+    description: "Ensure that authorization for Docker client commands is enabled
+    (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--authorization-plugin"
+        set: true
+    remediation: |
+      Step 1: Install/Create an authorization plugin.
+      Step 2: Configure the authorization policy as desired.
+      Step 3: Start the docker daemon as below:
+      dockerd --authorization-plugin=<PLUGIN_ID>
+    scored: true
+
+  - id: 2.12
+    description: "Ensure centralized and remote logging is configured (Scored)"
+    audit: ps -ef | grep dockerd
+    type: manual
+    tests:
+      test_items:
+      - flag: "--log-driver"
+        set: true
+    remediation: |
+      Step 1: Setup the desired log driver by following its documentation.
+      Step 2: Start the docker daemon with that logging driver.
+      For example,
+      dockerd --log-driver=syslog --log-opt syslog-address=tcp://192.xxx.xxx.xxx
+    scored: true
+
+  - id: 2.13
+    description: "Ensure operations on legacy registry (v1) are Disabled (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--disable-legacy-registry"
+        set: true
+    remediation: |
+      Start the docker daemon as below:
+      dockerd --disable-legacy-registry
+    scored: true
+
+  - id: 2.14
+    description: "Ensure live restore is Enabled (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--live-restore"
+        set: true
+    remediation: |
+      Run the docker in daemon mode and pass --live-restore as an argument.
+      For Example,
+      dockerd --live-restore
+    scored: true
+
+  - id: 2.15
+    description: "Ensure Userland Proxy is Disabled (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--userland-proxy"
+        compare:
+          op: eq
+          value: "false"
+        set: true
+    remediation: |
+      Run the Docker daemon as below:
+      dockerd --userland-proxy=false
+    scored: true
+
+  - id: 2.16
+    description: "Ensure daemon-wide custom seccomp profile is applied, if needed
+    (Not Scored)"
+    audit: docker info --format '{{ .SecurityOptions }}'
+    tests:
+      test_items:
+      - flag: "profile"
+        compare:
+          op: has
+          value: "default"
+        set: true
+    remediation: |
+      By default, Docker's default seccomp profile is applied. If this is good for your environment,
+      no action is necessary. Alternatively, if you choose to apply your own seccomp profile, use
+      the --seccomp-profile flag at daemon start or put it in the daemon runtime parameters
+      file.
+      dockerd --seccomp-profile </path/to/seccomp/profile>
+    scored: false
+
+  - id: 2.17
+    description: "Ensure experimental features are avoided in production (Scored)"
+    audit: docker version --format '{{ .Server.Experimental }}'
+    tests:
+      test_items:
+      - flag: "false"
+        compare:
+          op: eq
+          value: "false"
+        set: true
+    remediation: |
+      Do not pass --experimental as a runtime parameter to the docker daemon.
+    scored: true
+
+  - id: 2.18
+    description: "Ensure containers are restricted from acquiring new privileges
+    (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--no-new-privileges"
+        compare:
+          op: noteq
+          value: "false"
+        set: true
+    remediation: |
+      Run the Docker daemon as below:
+      dockerd --no-new-privileges
+    scored: true

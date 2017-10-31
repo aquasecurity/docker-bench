@@ -511,3 +511,342 @@ groups:
       Run the Docker daemon as below:
       dockerd --no-new-privileges
     scored: true
+
+- id: 3
+  description: "Docker daemon configuration files"
+  checks:
+  - id: 3.1
+    description: "Ensure that docker.service file ownership is set to root:root (Scored)"
+    audit: systemctl show -p FragmentPath docker.service | cut -d= -f2 | xargs stat -c %U:%G
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      Step 1: Find out the file location:
+      systemctl show -p FragmentPath docker.service
+      Step 2: If the file does not exist, this recommendation is not applicable. If the file exists,
+      execute the below command with the correct file path to set the ownership and group
+      ownership for the file to root .
+      For example,
+      chown root:root /usr/lib/systemd/system/docker.service
+    scored: true
+
+  - id: 3.2
+    description: "Ensure that docker.service file permissions are set to 644 or more
+    restrictive (Scored)"
+    audit: systemctl show -p FragmentPath docker.service | cut -d= -f2 | xargs stat -c %a
+    tests:
+      test_items:
+      - flag: "644"
+        compare:
+          op: eq
+          value: "644"
+        set: true
+    remediation: |
+      Step 1: Find out the file location:
+      systemctl show -p FragmentPath docker.service
+      Step 2: If the file does not exist, this recommendation is not applicable. If the file exists,
+      execute the below command with the correct file path to set the file permissions to 644 .
+      For example,
+      chmod 644 /usr/lib/systemd/system/docker.service
+    scored: true
+
+  - id: 3.3
+    description: "Ensure that docker.socket file ownership is set to root:root (Scored)"
+    audit: systemctl show -p FragmentPath docker.socket | cut -d= -f2 | xargs stat -c %U:%G
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      Step 1: Find out the file location:
+      systemctl show -p FragmentPath docker.socket
+      Step 2: If the file does not exist, this recommendation is not applicable. If the file exists,
+      execute the below command with the correct file path to set the ownership and group
+      ownership for the file to root .
+      For example,
+      chown root:root /usr/lib/systemd/system/docker.socket
+    scored: true
+
+  - id: 3.4
+    description: "Ensure that docker.socket file permissions are set to 644 or more
+    restrictive (Scored)"
+    audit: systemctl show -p FragmentPath docker.socket | cut -d= -f2 | xargs stat -c %a
+    tests:
+      test_items:
+      - flag: "644"
+        compare:
+          op: eq
+          value: "644"
+        set: true
+    remediation: |
+      Step 1: Find out the file location:
+      systemctl show -p FragmentPath docker.socket
+      Step 2: If the file does not exist, this recommendation is not applicable. If the file exists,
+      execute the below command with the correct file path to set the file permissions to 644 .
+      For example,
+      chmod 644 /usr/lib/systemd/system/docker.socket
+    scored: true
+
+  - id: 3.5
+    description: "Ensure that /etc/docker directory ownership is set to root:root
+    (Scored)"
+    audit: stat -c %U:%G /etc/docker
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      chown root:root /etc/docker
+      This would set the ownership and group-ownership for the directory to root .
+    scored: true
+
+  - id: 3.6
+    description: "Ensure that /etc/docker directory permissions are set to 755 or more
+    restrictive (Scored)"
+    audit: stat -c %a /etc/docker
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "755"
+        compare:
+          op: eq
+          value: "755"
+        set: true
+      - flag: "750"
+        compare:
+          op: eq
+          value: "750"
+        set: true
+      - flag: "700"
+        compare:
+          op: eq
+          value: "700"
+        set: true
+    remediation: |
+      chmod 755 /etc/docker
+      This would set the permissions for the directory to 755 .
+    scored: true
+
+  - id: 3.7
+    description: "Ensure that registry certificate file ownership is set to root:root
+    (Scored)"
+    audit: /bin/sh -c "if [ -d /etc/docker/certs.d ]; then stat -c %U:%G /etc/docker/certs.d/*; fi"
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: ""
+        set: true
+    remediation: |
+      chown root:root /etc/docker/certs.d/<registry-name>/*
+      This would set the ownership and group-ownership for the registry certificate files to root .
+    scored: true
+
+  - id: 3.8
+    description: "Ensure that registry certificate file permissions are set to 444 or
+    more restrictive (Scored)"
+    audit: /bin/sh -c "if [ -d /etc/docker/certs.d ]; then stat -c %a /etc/docker/certs.d/*; fi"
+    tests:
+      test_items:
+      - flag: "444"
+        compare:
+          op: eq
+          value: "444"
+        set: true
+    remediation: |
+      chmod 444 /etc/docker/certs.d/<registry-name>/*
+      This would set the permissions for registry certificate files to 444 .
+    scored: true
+
+  - id: 3.9
+    description: "Ensure that TLS CA certificate file ownership is set to root:root
+    (Scored)"
+    type: manual
+    remediation: |
+      chown root:root <path to TLS CA certificate file>
+      This would set the ownership and group-ownership for the TLS CA certificate file to root .
+    scored: true
+
+  - id: 3.10
+    description: "Ensure that TLS CA certificate file permissions are set to 444 or
+    more restrictive (Scored)"
+    type: manual
+    remediation: |
+      chmod 444 <path to TLS CA certificate file>
+      This would set the file permissions of the TLS CA file to 444 .
+    scored: true
+
+  - id: 3.11
+    description: "Ensure that Docker server certificate file ownership is set to
+    root:root (Scored)"
+    type: manual
+    remediation: |
+      chown root:root <path to Docker server certificate file>
+      This would set the ownership and group-ownership for the Docker server certificate file to
+      root .
+    scored: true
+
+  - id: 3.12
+    description: "Ensure that Docker server certificate file permissions are set to 444
+    or more restrictive (Scored)"
+    type: manual
+    remediation: |
+      chmod 444 <path to Docker server certificate file>
+      This would set the file permissions of the Docker server file to 444 .
+    scored: true
+
+  - id: 3.13
+    description: "Ensure that Docker server certificate key file ownership is set to
+    root:root (Scored)"
+    type: manual
+    remediation: |
+      chown root:root <path to Docker server certificate key file>
+      This would set the ownership and group-ownership for the Docker server certificate key
+      file to root.
+    scored: true
+
+  - id: 3.14
+    description: "Ensure that Docker server certificate key file permissions are set to
+    400 (Scored)"
+    type: manual
+    remediation: |
+      chmod 400 <path to Docker server certificate key file>
+      This would set the Docker server certificate key file permissions to 400 .
+    scored: true
+
+  - id: 3.15
+    description: "Ensure that Docker socket file ownership is set to root:docker
+    (Scored)"
+    audit: /bin/sh -c "if [ -f /var/run/docker.sock ]; then stat -c %U:%G /var/run/docker.sock; fi"
+    tests:
+      test_items:
+      - flag: "root:docker"
+        compare:
+          op: eq
+          value: "root:docker"
+        set: true
+    remediation: |
+      chown root:docker /var/run/docker.sock
+      This would set the ownership to root and group-ownership to docker for default Docker
+      socket file.
+    scored: true
+
+  - id: 3.16
+    description: "Ensure that Docker socket file permissions are set to 660 or more
+    restrictive (Scored)"
+    audit: /bin/sh -c "if [ -f /var/run/docker.sock ]; then stat -c %a /var/run/docker.sock; fi"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "660"
+        compare:
+          op: eq
+          value: "660"
+        set: true
+      test_items:
+      - flag: "600"
+        compare:
+          op: eq
+          value: "600"
+        set: true
+    remediation: |
+      chmod 660 /var/run/docker.sock
+      This would set the file permissions of the Docker socket file to 660 .
+    scored: true
+
+  - id: 3.17
+    description: "Ensure that daemon.json file ownership is set to root:root (Scored)"
+    audit: /bin/sh -c "if [ -f /etc/docker/daemon.json ]; then stat -c %U:%G /etc/docker/daemon.json; fi"
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      chown root:root /etc/docker/daemon.json
+      This would set the ownership and group-ownership for the file to root .
+    scored: true
+
+  - id: 3.18
+    description: "Ensure that daemon.json file permissions are set to 644 or more
+    restrictive (Scored)"
+    audit: /bin/sh -c "if [ -f /etc/docker/daemon.json ]; then stat -c %a /etc/docker/daemon.json; fi"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "644"
+        compare:
+          op: eq
+          value: "644"
+        set: true
+      - flag: "640"
+        compare:
+          op: eq
+          value: "640"
+        set: true
+      - flag: "600"
+        compare:
+          op: eq
+          value: "600"
+        set: true
+    remediation: |
+      chown root:root /etc/default/docker
+      This would set the ownership and group-ownership for the file to root .
+    scored: true
+
+  - id: 3.19
+    description: "Ensure that /etc/default/docker file ownership is set to root:root
+    (Scored)"
+    audit: /bin/sh -c "if [ -f /etc/default/docker ]; then stat -c %U:%G /etc/default/docker; fi"
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      chown root:root /etc/default/docker
+      This would set the ownership and group-ownership for the file to root .
+    scored: true
+
+  - id: 3.20
+    description: "Ensure that /etc/default/docker file permissions are set to 644 or
+    more restrictive (Scored)"
+    audit: /bin/sh -c "if [ -f /etc/default/docker ]; then stat -c %a /etc/default/docker; fi"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "644"
+        compare:
+          op: eq
+          value: "644"
+        set: true
+      - flag: "640"
+        compare:
+          op: eq
+          value: "640"
+        set: true
+      - flag: "600"
+        compare:
+          op: eq
+          value: "600"
+        set: true
+    remediation: |
+      chmod 644 /etc/default/docker
+      This would set the file permissions for this file to 644 .
+    scored: true

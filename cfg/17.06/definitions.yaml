@@ -1446,3 +1446,53 @@ groups:
     remediation: |
       Ensure that no containers mount docker.sock as a volume.
     scored: true
+
+- id: 6
+  description: "Docker Security Operations"
+  checks:
+  - id: 6.1
+    description: "Ensure image sprawl is avoided (Not Scored)"
+    type: manual
+    remediation: |
+      Keep the set of the images that you actually need and establish a workflow to remove old or
+      stale images from the host. Additionally, use features such as pull-by-digest to get specific
+      images from the registry.
+      Additionally, you can follow below set of steps to find out unused images on the system and
+      delete them.
+      Step 1 Make a list of all image IDs that are currently instantiated by executing below
+      command:
+      docker images --quiet | xargs docker inspect --format '{{ .Id }}: Image={{
+              .Config.Image }}'
+      Step 2: List all the images present on the system by executing below command:
+      docker images
+      Step 3: Compare the list of image IDs populated from Step 1 and Step 2 and find out images
+      that are currently not being instantiated.
+      Step 4: Decide if you want to keep the images that are not currently in use. If not delete
+      them by executing below command:
+      docker rmi $IMAGE_ID
+    scored: false
+
+  - id: 6.2
+    description: "Ensure container sprawl is avoided (Not Scored)"
+    type: manual
+    remediation: |
+      Periodically check your container inventory per host and clean up the stopped containers
+      using the below command:
+      docker container prune
+    scored: false
+
+- id: 7
+  description: ""
+  checks:
+  - id: 7.
+    description: ""
+    audit: 
+    tests:
+      test_items:
+      - flag: ""
+        compare:
+          op:
+          value:
+        set: true
+    remediation: |
+    scored: true

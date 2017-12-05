@@ -848,5 +848,601 @@ groups:
         set: true
     remediation: |
       chmod 644 /etc/default/docker
-      This would set the file permissions for this file to 644 .
+      This would set the file permissions for this file to 644.
+    scored: true
+
+- id: 4
+  description: "Container Images and Build File"
+  checks:
+  - id: 4.1
+    description: "Ensure a user for the container has been created (Scored)"
+    audit: "docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}: User={{ .Config.User }}'"
+    tests:
+      test_items:
+      - flag: "root"
+        compare:
+          op: nothave
+          value: "root"
+        set: true
+    remediation: |
+       Ensure that the Dockerfile for the container image contains below instruction:
+       USER <username or ID>
+       where username or ID refers to the user that could be found in the container base image. If
+       there is no specific user created in the container base image, then add a useradd command
+       to add the specific user before USER instruction.
+       For example, add the below lines in the Dockerfile to create a user in the container:
+       RUN useradd -d /home/username -m -s /bin/bash username
+       USER username
+       Note: If there are users in the image that the containers do not need, consider deleting
+       them. After deleting those users, commit the image and then generate new instances of
+       containers for use.
+    scored: true
+
+  - id: 4.2
+    description: "Ensure that containers use trusted base images (Not Scored)"
+    type: manual
+    remediation: |
+      - Configure and use Docker Content trust.
+      - Inspect Docker image history to evaluate their risk to operate on your network.
+      - Scan Docker images for vulnerabilities in their dependencies and configurations
+        they will impose upon your network.
+    scored: false
+ 
+  - id: 4.3
+    description: "Ensure unnecessary packages are not installed in the container (Not Scored)"
+    type: manual
+    remediation: |
+      At the outset, do not install anything on the container that does not justify the purpose. If
+      the image had some packages that your container does not use, uninstall them.
+      Consider using a minimal base image rather than the standard Redhat/Centos/Debian
+      images if you can. Some of the options include BusyBox and Alpine.
+      Not only does this trim your image size from >150Mb to ~20 Mb, there are also fewer tools
+      and paths to escalate privileges. You can even remove the package installer as a final
+      hardening measure for leaf/production containers.
+    scored: false
+
+  - id: 4.4
+    description: "Ensure images are scanned and rebuilt to include security patches
+    (Not Scored)"
+    type: manual
+    remediation: |
+      Follow the below steps to rebuild the images with security patches:
+      Step 1: Pull all the base images (i.e., given your set of Dockerfiles, extract all images
+      declared in FROM instructions, and re-pull them to check for an updated/patched versions).
+      Patch the packages within the images too.
+      docker pull
+      Step 2: Force a rebuild of each image:
+      docker build --no-cache
+      Step 3: Restart all containers with the updated images.
+      You could also use ONBUILD directive in the Dockerfile to trigger particular update
+      instructions for images that you know are used as base images frequently.
+    scored: false
+
+    #### Come back here
+  - id: 4.5
+    description: "Ensure Content trust for Docker is Enabled (Scored)"
+    audit: echo $DOCKER_CONTENT_TRUST
+    tests:
+      test_items:
+      - flag: 1
+        compare:
+          op: has
+          value: 1
+        set: true
+    remediation: |
+      To enable content trust in a bash shell, enter the following command:
+      export DOCKER_CONTENT_TRUST=1
+      Alternatively, set this environment variable in your profile file so that content trust in
+      enabled on every login.
+    scored: true
+
+  - id: 4.6
+    description: "Ensure HEALTHCHECK instructions have been added to the container
+    image (Scored)"
+    type: manual
+    remediation: |
+      Follow Docker documentation and rebuild your container image with HEALTHCHECK
+      instruction.
+    scored: true
+
+  - id: 4.7
+    description: "Ensure update instructions are not use alone in the Dockerfile (Not
+    Scored)"
+    type: manual
+    remediation: |
+      Use update instructions along with install instructions (or any other) and version pinning
+      for packages while installing them. This would bust the cache and force to extract the
+      required versions.
+      Alternatively, you could use --no-cache flag during docker build process to avoid using
+      cached layers.
+    scored: false
+
+  - id: 4.8
+    description: "Ensure setuid and setgid permissions are removed in the images
+    (Not Scored)"
+    type: manual
+    remediation: |
+      Allow setuid and setgid permissions only on executables which need them. You could
+      remove these permissions during build time by adding the following command in your
+      Dockerfile, preferably towards the end of the Dockerfile:
+      RUN find / -perm +6000 -type f -exec chmod a-s {} \; || true
+    scored: false
+
+  - id: 4.9
+    description: "Ensure COPY is used instead of ADD in Dockerfile (Not Scored)"
+    type: manual
+    remediation: |
+      Use COPY instructions in Dockerfiles.
+    scored: false
+
+  - id: 4.10
+    description: "Ensure secrets are not stored in Dockerfiles (Not Scored)"
+    type: manual
+    remediation: |
+    scored: false
+
+  - id: 4.11
+    description: "Ensure verified packages are only Installed (Not Scored)"
+    type: manual
+    remediation: |
+      Use GPG keys for downloading and verifying packages or any other secure package
+      distribution mechanism of your choice.
+    scored: false
+
+  - id: 4.
+    description: ""
+    #     audit: 
+    #     tests:
+    #       test_items:
+    #       - flag: ""
+    #         compare:
+    #           op: eq
+    #           value: ""
+    #         set: true
+    remediation: |
+    scored: true
+
+- id: 5
+  description: "Container Runtime"
+  checks:
+  - id: 5.1
+    description: "Ensure AppArmor Profile is Enabled (Scored)"
+    type: manual
+    remediation: |
+      If AppArmor is applicable for your Linux OS, use it. You may have to follow below set of
+      steps:
+            1. Verify if AppArmor is installed. If not, install it.
+            2. Create or import a AppArmor profile for Docker containers.
+            3. Put this profile in enforcing mode.
+            4. Start your Docker container using the customized AppArmor profile. For example,
+      docker run --interactive --tty --security-opt="apparmor:PROFILENAME" centos
+      /bin/bash
+    scored: true
+
+  - id: 5.2
+    description: "Ensure SELinux security options are set, if applicable (Scored)"
+    type: manual
+    remediation: |
+      If SELinux is applicable for your Linux OS, use it. You may have to follow below set of steps:
+              1. Set the SELinux State.
+              2. Set the SELinux Policy.
+              3. Create or import a SELinux policy template for Docker containers.
+              4. Start Docker in daemon mode with SELinux enabled. For example,
+        docker daemon --selinux-enabled
+              5. Start your Docker container using the security options. For example,
+        docker run --interactive --tty --security-opt label=level:TopSecret centos
+        /bin/bash
+    scored: true
+
+  - id: 5.3
+    description: "Ensure Linux Kernel Capabilities are restricted within containers
+    (Scored)"
+    type: manual
+    remediation: |
+      Execute the below command to add needed capabilities:
+      $> docker run --cap-add={"Capability 1","Capability 2"}
+      For example,
+      docker run --interactive --tty --cap-add={"NET_ADMIN","SYS_ADMIN"}
+      centos:latest /bin/bash
+    scored: true
+
+  - id: 5.4
+    description: "Ensure privileged containers are not used (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Privileged={{ .HostConfig.Privileged }}'
+    tests:
+      test_items:
+      - flag: "Privileged=true"
+        set: false
+    remediation: |
+      Do not run container with the --privileged flag.
+      For example, do not start a container as below:
+      docker run --interactive --tty --privileged centos /bin/bash
+    scored: true
+
+  - id: 5.5
+    description: "Ensure sensitive host system directories are not mounted on
+    containers (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Volumes={{ .Mounts }}'
+    tests:
+      test_items:
+      - flag: "Source:/ Destination"
+        set: false
+      - flag: "Source:/boot Destination"
+        set: false
+      - flag: "Source:/dev Destination"
+        set: false
+      - flag: "Source:/etc Destination"
+        set: false
+      - flag: "Source:/lib Destination"
+        set: false
+      - flag: "Source:/proc Destination"
+        set: false
+      - flag: "Source:/sys Destination"
+        set: false
+      - flag: "Source:/usr Destination"
+        set: false
+    remediation: |
+      Do not mount host sensitive directories on containers especially in read-write mode.
+    scored: true
+
+  - id: 5.6
+    description: "Ensure ssh is not run within containers (Scored)"
+    type: manual
+    remediation: |
+      Uninstall SSH server from the container and use nsenter or any other commands such as
+      docker exec or docker attach to interact with the container instance.
+      docker exec --interactive --tty $INSTANCE_ID sh
+      OR
+      docker attach $INSTANCE_ID
+    scored: true
+
+  - id: 5.7
+    description: "Ensure privileged ports are not mapped within containers (Scored)"
+    type: manual
+    remediation: |
+      Do not map the container ports to privileged host ports when starting a container. Also,
+      ensure that there is no such container to host privileged port mapping declarations in the
+      Dockerfile.
+    scored: true
+
+  - id: 5.8
+    description: "Ensure only needed ports are open on the container (Scored)"
+    type: manual
+    remediation: |
+      Fix the Dockerfile of the container image to expose only needed ports by your
+      containerized application. You can also completely ignore the list of ports defined in the
+      Dockerfile by NOT using -P (UPPERCASE) or --publish-all flag when starting the
+      container. Use the -p (lowercase) or --publish flag to explicitly define the ports that you
+      need for a particular container instance.
+      For example,
+      docker run --interactive --tty --publish 5000 --publish 5001 --publish 5002
+      centos /bin/bash
+    scored: true
+
+  - id: 5.9
+    description: "Ensure the host's network namespace is not shared (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:NetworkMode={{ .HostConfig.NetworkMode }}'
+    tests:
+      test_items:
+      - flag: "NetworkMode=host"
+        set: false
+    remediation: |
+      Do not pass --net=host option when starting the container.
+    scored: true
+
+  - id: 5.10
+    description: "Ensure memory usage for container is limited (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Memory={{ .HostConfig.Memory }}'
+    tests:
+      test_items:
+      - flag: "Memory"
+        compare:
+          op: gt
+          value: 0
+        set: true
+    remediation: |
+      Run the container with only as much memory as required. Always run the container using
+      the --memory argument.
+      For example, you could run a container as below:
+      docker run --interactive --tty --memory 256m centos /bin/bash
+      In the above example, the container is started with a memory limit of 256 MB.
+      Note: Please note that the output of the below command would return values in scientific
+      notation if memory limits are in place.
+      docker inspect --format='{{.Config.Memory}}' 7c5a2d4c7fe0
+
+      For example, if the memory limit is set to 256 MB for the above container instance, the
+      output of the above command would be 2.68435456e+08 and NOT 256m. You should
+      convert this value using a scientific calculator or programmatic methods.
+    scored: true
+
+  - id: 5.11
+    description: "Ensure CPU priority is set appropriately on the container (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:CpuShares={{ .HostConfig.CpuShares }}' 
+    tests:
+      test_items:
+      - flag: "CpuShares"
+        compare:
+          op: gt 
+          value: 0
+        set: true
+      - flag: "CpuShares"
+        compare:
+          op: lt 
+          value: 1024
+        set: true
+    remediation: |
+      Manage the CPU shares between your containers. To do so start the container using the --
+      cpu-shares argument.
+      For example, you could run a container as below:
+      docker run --interactive --tty --cpu-shares 512 centos /bin/bash
+      In the above example, the container is started with CPU shares of 50% of what the other
+      containers use. So, if the other container has CPU shares of 80%, this container will have
+      CPU shares of 40%.
+      Note: Every new container will have 1024 shares of CPU by default. However, this value is
+      shown as 0 if you run the command mentioned in the audit section.
+    scored: true
+
+  - id: 5.12
+    description: "Ensure the container's root filesystem is mounted as read only
+    (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:ReadonlyRootfs={{ .HostConfig.ReadonlyRootfs }}'
+    tests:
+      test_items:
+      - flag: "ReadonlyRootfs=false"
+        set: false
+    remediation: |
+      Add a --read-only flag at a container's runtime to enforce the container's root filesystem
+      to be mounted as read only.
+      docker run <Run arguments> --read-only <Container Image Name or ID> <Command>
+      Enabling the --read-only option at a container's runtime should be used by administrators
+      to force a container's executable processes to only write container data to explicit storage
+      locations during the container's runtime.
+      Examples of explicit storage locations during a container's runtime include, but not limited
+      to:
+      1. Use the --tmpfs option to mount a temporary file system for non-persistent data
+      writes.
+      docker run --interactive --tty --read-only --tmpfs "/run" --tmpfs "/tmp"
+      centos /bin/bash
+      2. Enabling Docker rw mounts at a container's runtime to persist container data
+      directly on the Docker host filesystem.
+      docker run --interactive --tty --read-only -v /opt/app/data:/run/app/data:rw
+      centos /bin/bash
+      3. Utilizing Docker shared-storage volume plugins for Docker data volume to persist
+      container data.
+      docker volume create -d convoy --opt o=size=20GB my-named-volume
+      docker run --interactive --tty --read-only -v my-named-volume:/run/app/data
+      centos /bin/bash
+      3. Transmitting container data outside of the docker during the container's runtime
+      for container data to persist container data. Examples include hosted databases,
+      network file shares, and APIs.
+    scored: true
+
+  - id: 5.13
+    description: "Ensure incoming container traffic is binded to a specific host
+    interface (Scored)"
+    audit: docker ps --quiet | xargs docker inspect --format '{{ .Id }}:Ports={{ .NetworkSettings.Ports }}'
+    tests:
+      test_items:
+      - flag: "0.0.0.0"
+        set: false
+    remediation: |
+      Bind the container port to a specific host interface on the desired host port.
+      For example,
+      docker run --detach --publish 10.2.3.4:49153:80 nginx
+      In the example above, the container port 80 is bound to the host port on 49153 and would
+      accept incoming connection only from 10.2.3.4 external interface.
+    scored: true
+
+    # This test request requires multi-test capabilities
+  - id: 5.14
+    description: "Ensure 'on-failure' container restart policy is set to '5' (Scored)"
+    type: manual
+    remediation: |
+      If a container is desired to be restarted of its own, then, for example, you could start the
+      container as below:
+      docker run --detach --restart=on-failure:5 nginx
+    scored: true
+
+  - id: 5.15
+    description: "Ensure the host's process namespace is not shared (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:PidMode={{ .HostConfig.PidMode }}'
+    tests:
+      test_items:
+      - flag: "PidMode=host"
+        set: false
+    remediation: |
+      Do not start a container with --pid=host argument.
+      For example, do not start a container as below:
+      docker run --interactive --tty --pid=host centos /bin/bash
+    scored: true
+
+  - id: 5.16
+    description: "Ensure the host's IPC namespace is not shared (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:IpcMode={{ .HostConfig.IpcMode }}'
+    tests:
+      test_items:
+      - flag: "IpcMode=host"
+        set: false
+    remediation: |
+      Do not start a container with --ipc=host argument. For example, do not start a container
+      as below:
+      docker run --interactive --tty --ipc=host centos /bin/bash
+    scored: true
+
+  - id: 5.17
+    description: "Ensure host devices are not directly exposed to containers (Not
+    Scored)"
+    type: manual
+    remediation: |
+      Do not directly expose the host devices to containers. If at all, you need to expose the host
+      devices to containers, use the correct set of permissions:
+      For example, do not start a container as below:
+      docker run --interactive --tty --device=/dev/tty0:/dev/tty0:rwm --
+      device=/dev/temp_sda:/dev/temp_sda:rwm centos bash
+      For example, share the host device with correct permissions:
+      docker run --interactive --tty --device=/dev/tty0:/dev/tty0:rw --
+      device=/dev/temp_sda:/dev/temp_sda:r centos bash
+    scored: false
+
+  - id: 5.18
+    description: "Ensure the default ulimit is overwritten at runtime, only if needed
+    (Not Scored)"
+    type: manual
+    remediation: |
+      Only override the default ulimit settings if needed.
+      For example, to override default ulimit settings start a container as below:
+      docker run --ulimit nofile=1024:1024 --interactive --tty centos /bin/bash
+    scored: true
+
+  - id: 5.19
+    description: "Ensure mount propagation mode is not set to shared (Scored)"
+    type: manual
+    remediation: |
+      Do not mount volumes in shared mode propagation.
+      For example, do not start container as below:
+      docker run <Run arguments> --volume=/hostPath:/containerPath:shared
+      <Container Image Name or ID> <Command>
+    scored: true
+
+  - id: 5.20
+    description: "Ensure the host's UTS namespace is not shared (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:UTSMode={{ .HostConfig.UTSMode }}'
+    tests:
+      test_items:
+      - flag: "UTSMode=host"
+        set: false
+    remediation: |
+      Do not start a container with --uts=host argument.
+      For example, do not start a container as below:
+      docker run --rm --interactive --tty --uts=host rhel7.2
+    scored: true
+
+  - id: 5.21
+    description: "Ensure the default seccomp profile is not Disabled (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:SecurityOpt={{ .HostConfig.SecurityOpt }}'
+    tests:
+      test_items:
+      - flag: "seccomp:unconfined"
+        set: false
+    remediation: |
+      By default, seccomp profiles are enabled. You do not need to do anything unless you want
+      to modify and use the modified seccomp profile.
+    scored: true
+
+    # Revisit
+  - id: 5.22
+    description: "Ensure docker exec commands are not used with privileged option
+    (Scored)"
+    type: manual
+    remediation: |
+      Do not use --privileged option in docker exec command.
+    scored: true
+
+    # Revisit
+  - id: 5.23
+    description: "Ensure docker exec commands are not used with user option
+    (Scored)"
+    type: manual
+    remediation: |
+      Do not use --user option in docker exec command.
+    scored: true
+
+    # Revisit: issue with representing empty parameter
+  - id: 5.24
+    description: "Ensure cgroup usage is confirmed (Scored)"
+    type: manual
+    remediation: |
+      Do not use --cgroup-parent option in docker run command unless needed.
+    scored: true
+
+  - id: 5.25
+    description: "Ensure the container is restricted from acquiring additional
+    privileges (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:SecurityOpt={{ .HostConfig.SecurityOpt }}'
+    tests:
+      test_items:
+      - flag: "no-new-privileges"
+        set: true
+    remediation: |
+      For example, you should start your container as below:
+      docker run --rm -it --security-opt=no-new-privileges ubuntu bash
+    scored: true
+
+    # Revisit
+  - id: 5.26
+    description: "Ensure container health is checked at runtime (Scored)"
+    type: manual
+    remediation: |
+      Run the container using --health-cmd and the other parameters.
+      For example,
+      docker run -d --health-cmd='stat /etc/passwd || exit 1' nginx
+    scored: true
+
+  - id: 5.27
+    description: "Ensure docker commands always get the latest version of the
+    image (Not Scored)"
+    type: manual
+    remediation: |
+      Use proper version pinning mechanisms (the latest tag which is assigned by default is still
+      vulnerable to caching attacks) to avoid extracting the cached older versions. Version
+      pinning mechanisms should be used for base images, packages, and entire images too. You
+      can customize version pinning rules as per your requirements.
+    scored: false
+
+  - id: 5.28
+    description: "Ensure PIDs cgroup limit is used (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:PidsLimit={{ .HostConfig.PidsLimit }}'
+    tests:
+      test_items:
+      - flag: "PidsLimit"
+        compare:
+          op: gt
+          value: 0
+        set: true
+    remediation: |
+      Use --pids-limit flag while launching the container with an appropriate value.
+      For example,
+      docker run -it --pids-limit 100 <Image_ID>
+      In the above example, the number of processes allowed to run at any given time is set to
+      100. After a limit of 100 concurrently running processes is reached, docker would restrict
+      any new process creation.
+    scored: true
+
+  - id: 5.29
+    description: "Ensure Docker's default bridge docker0 is not used (Not Scored)"
+    audit: docker network ls --quiet | xargs xargs docker network inspect --format '{{ .Name }}:{{ .Options }}'
+    tests:
+      test_items:
+      - flag: "com.docker.network.bridge.name:docker0"
+        set: false
+    remediation: |
+      Follow Docker documentation and setup a user-defined network. Run all the containers in
+      the defined network.
+    scored: false
+
+    # Revisit: issue representing null value
+  - id: 5.30
+    description: "Ensure the host's user namespaces is not shared (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:UsernsMode={{ .HostConfig.UsernsMode }}'
+    type: manual
+    tests:
+      test_items:
+      - flag: "UsernsMode="
+        set: true
+    remediation: |
+      Do not share user namespaces between host and containers.
+      For example, do not run a container as below:
+      docker run --rm -it --userns=host ubuntu bash
+    scored: true
+
+  - id: 5.31
+    description: "Ensure the Docker socket is not mounted inside any containers
+    (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Volumes={{ .Mounts }}' | grep docker.sock
+    tests:
+      test_items:
+      - flag: "docker.sock"
+        set: false
+    remediation: |
+      Ensure that no containers mount docker.sock as a volume.
     scored: true

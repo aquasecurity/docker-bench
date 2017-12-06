@@ -1482,17 +1482,110 @@ groups:
     scored: false
 
 - id: 7
-  description: ""
+  description: "Docker Swarm Configuration"
   checks:
-  - id: 7.
-    description: ""
-    audit: 
+  - id: 7.1
+    description: "Ensure swarm mode is not Enabled, if not needed (Scored)"
+    type: manual
+    remediation: |
+      If swarm mode has been enabled on a system in error, run
+      docker swarm leave
+    scored: true
+
+  - id: 7.2
+    description: "Ensure the minimum number of manager nodes have been created
+    in a swarm (Scored)"
+    type: manual
+    remediation: |
+      If an excessive number of managers is configured, the excess can be demoted as worker
+      using the following command:
+      docker node demote <ID>
+      Where is the node ID value of the manager to be demoted.
+    scored: true
+
+  - id: 7.3
+    description: "Ensure swarm services are binded to a specific host interface
+    (Scored)"
+    audit: netstat -lt | grep -i 2377
     tests:
       test_items:
-      - flag: ""
+      - flag: "0.0.0.0"
         compare:
-          op:
-          value:
+        set: false
+    remediation: |
+      Remediation of this requires re-initialization of the swarm specifying a specific interface
+      for the --listen-addr parameter.
+    scored: true
+
+  - id: 7.4
+    description: "Ensure data exchanged between containers are encrypted on
+    different nodes on the overlay network (Scored)"
+    audit: docker network ls --filter driver=overlay --quiet | xargs docker network inspect --format '{{.Name}} {{ .Options }}'
+    tests:
+      test_items:
+      - flag: "encrypted"
         set: true
     remediation: |
+      Create overlay network with --opt encrypted flag.
     scored: true
+
+  - id: 7.5
+    description: "Ensure Docker's secret management commands are used for
+    managing secrets in a Swarm cluster (Not Scored)"
+    type: manual
+    remediation: |
+      Follow docker secret documentation and use it to manage secrets effectively.
+    scored: true
+
+  - id: 7.6
+    description: "Ensure swarm manager is run in auto-lock mode (Scored)"
+    audit: docker swarm unlock-key
+    tests:
+      test_items:
+      - flag: "no unlock key is set"
+        set: false
+    remediation: |
+      If you are initializing swarm, use the below command.
+      docker swarm init --autolock
+      If you want to set --autolock on an existing swarm manager node, use the below
+      command.
+      docker swarm update --autolock
+    scored: true
+
+  - id: 7.7
+    description: "Ensure swarm manager auto-lock key is rotated periodically (Not
+    Scored)"
+    type: manual
+    remediation: |
+      Run the below command to rotate the keys.
+      docker swarm unlock-key --rotate
+      Additionally, to facilitate audit for this recommendation, maintain key rotation records and
+      ensure that you establish a pre-defined frequency for key rotation.
+    scored: false
+
+  - id: 7.8
+    description: "Ensure node certificates are rotated as appropriate (Not Scored)"
+    type: manual
+    remediation: |
+      Run the below command to set the desired expiry time.
+      For example,
+      docker swarm update --cert-expiry 48h
+    scored: false 
+
+  - id: 7.9
+    description: "Ensure CA certificates are rotated as appropriate (Not Scored)"
+    type: manual
+    remediation: |
+      Run the below command to rotate the certificate.
+      docker swarm ca --rotate
+    scored: false
+
+  - id: 7.10
+    description: "Ensure management plane traffic has been separated from data
+    plane traffic (Not Scored)"
+    type: manual
+    remediation: |
+      Initialize Swarm with dedicated interfaces for management and data planes respectively.
+      For example,
+      docker swarm init --advertise-addr=192.168.0.1 --data-path-addr=17.1.0.3
+    scored: false

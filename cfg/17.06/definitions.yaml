@@ -329,6 +329,7 @@ groups:
   - id: 2.7
     description: "Ensure the default ulimit is configured appropriately (Not Scored)"
     audit: ps -ef | grep dockerd
+    type: manual
     tests:
       test_items:
       - flag: "--default-ulimit"

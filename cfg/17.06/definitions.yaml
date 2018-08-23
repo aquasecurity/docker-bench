@@ -472,7 +472,7 @@ groups:
       test_items:
       - flag: "profile"
         compare:
-          op: has
+          op: nothave
           value: "default"
         set: true
     remediation: |
@@ -502,11 +502,14 @@ groups:
     (Scored)"
     audit: ps -ef | grep dockerd
     tests:
+      bin_op: or
       test_items:
       - flag: "--no-new-privileges"
         compare:
-          op: noteq
-          value: "false"
+          op: eq
+          value: "true"
+        set: true
+      - flag: "--no-new-privileges"
         set: true
     remediation: |
       Run the Docker daemon as below:
@@ -646,9 +649,6 @@ groups:
     tests:
       test_items:
       - flag: "root:root"
-        compare:
-          op: eq
-          value: ""
         set: true
     remediation: |
       chown root:root /etc/docker/certs.d/<registry-name>/*
@@ -859,11 +859,22 @@ groups:
     description: "Ensure a user for the container has been created (Scored)"
     audit: "docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}: User={{ .Config.User }}'"
     tests:
+      bin_op: and
       test_items:
-      - flag: "root"
+      - flag: "User"
         compare:
           op: nothave
           value: "root"
+        set: true
+      - flag: "User"
+        compare:
+          op: noteq
+          value: ""
+        set: true
+      - flag: "User"
+        compare:
+          op: noteq
+          value: "1"
         set: true
     remediation: |
        Ensure that the Dockerfile for the container image contains below instruction:

@@ -3,6 +3,9 @@ package cmd
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/aquasecurity/bench-common/check"
 	"github.com/aquasecurity/bench-common/util"
@@ -11,28 +14,47 @@ import (
 )
 
 func app(cmd *cobra.Command, args []string) {
-	glog.V(2).Infof("all systems are go")
+	version, err := getVersion()
+	if err != nil {
+		util.ExitWithError(
+			fmt.Errorf("Version check failed: %s\nAlternatively, you can specify the version with --version",
+				err))
+	}
 
-	runCheck("cfg/17.06/definitions.yaml")
+	path, err := getDefinitionFilePath(version)
+	if err != nil {
+		util.ExitWithError(err)
+	}
+
+	controls, err := getControls(path)
+	if err != nil {
+		util.ExitWithError(err)
+	}
+
+	summary := runControls(controls)
+	err = outputResults(controls, summary)
+	if err != nil {
+		util.ExitWithError(err)
+	}
 }
 
-func runCheck(f string) {
-	data, err := ioutil.ReadFile(f)
-	if err != nil {
-		util.ExitWithError(err)
+func outputResults(controls *check.Controls, summary check.Summary) error {
+	// if we successfully ran some tests and it's json format, ignore the warnings
+	if (summary.Fail > 0 || summary.Warn > 0 || summary.Pass > 0) && jsonFmt {
+		out, err := controls.JSON()
+		if err != nil {
+			// util.ExitWithError(fmt.Errorf("failed to output in JSON format: %v", err))
+			return err
+		}
+		fmt.Println(string(out))
+	} else {
+		util.PrettyPrint(controls, summary)
 	}
 
-	controls, err := check.NewControls([]byte(data))
-	if err != nil {
-		util.ExitWithError(err)
-	}
+	return nil
+}
 
-	glog.V(2).Infof("running checks in %s\n", f)
-
-	// TODO: think about if we want to allow passing app version as parameter.
-	// In that case we will have to do version verification.
-	// Also think about supporting multiple versions of an app.
-
+func runControls(controls *check.Controls) check.Summary {
 	var summary check.Summary
 
 	if checkList != "" {
@@ -42,14 +64,52 @@ func runCheck(f string) {
 		summary = controls.RunGroup()
 	}
 
-	// if we successfully ran some tests and it's json format, ignore the warnings
-	if (summary.Fail > 0 || summary.Warn > 0 || summary.Pass > 0) && jsonFmt {
-		out, err := controls.JSON()
-		if err != nil {
-			util.ExitWithError(fmt.Errorf("failed to output in JSON format: %v", err))
-		}
-		fmt.Println(string(out))
-	} else {
-		util.PrettyPrint(controls, summary)
+	return summary
+}
+
+func getControls(path string) (*check.Controls, error) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
 	}
+
+	controls, err := check.NewControls([]byte(data))
+	if err != nil {
+		return nil, err
+	}
+
+	return controls, err
+}
+
+// getVersion returns the docker version to run checks for.
+func getVersion() (string, error) {
+	if dockerVersion != "" {
+		return dockerVersion, nil
+	}
+	return getDockerVersion()
+}
+
+// getDockerVersion returns the docker server engine version.
+func getDockerVersion() (string, error) {
+	cmd := exec.Command("docker", "version", "-f", "{{.Server.Version}}")
+	out, err := cmd.Output()
+	return string(out), err
+}
+
+func getDefinitionFilePath(version string) (string, error) {
+	filename := "definitions.yaml"
+
+	glog.V(2).Info(fmt.Sprintf("Looking for config for version %s", version))
+
+	path := filepath.Join(cfgDir, version)
+	file := filepath.Join(path, filename)
+
+	glog.V(2).Info(fmt.Sprintf("Looking for config file: %s\n", file))
+
+	_, err := os.Stat(file)
+	if err != nil {
+		return "", err
+	}
+
+	return file, nil
 }

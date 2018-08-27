@@ -14,11 +14,19 @@ import (
 )
 
 func app(cmd *cobra.Command, args []string) {
-	version, err := getVersion()
-	if err != nil {
-		util.ExitWithError(
-			fmt.Errorf("Version check failed: %s\nAlternatively, you can specify the version with --version",
-				err))
+	var version string
+	var err error
+
+	// Get version of Docker benchmark to run
+	if dockerVersion != "" {
+		version = dockerVersion
+	} else {
+		version, err = getDockerVersion()
+		if err != nil {
+			util.ExitWithError(
+				fmt.Errorf("Version check failed: %s\nAlternatively, you can specify the version with --version",
+					err))
+		}
 	}
 
 	path, err := getDefinitionFilePath(version)
@@ -79,14 +87,6 @@ func getControls(path string) (*check.Controls, error) {
 	}
 
 	return controls, err
-}
-
-// getVersion returns the docker version to run checks for.
-func getVersion() (string, error) {
-	if dockerVersion != "" {
-		return dockerVersion, nil
-	}
-	return getDockerVersion()
 }
 
 // getDockerVersion returns the docker server engine version.

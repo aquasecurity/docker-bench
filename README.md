@@ -25,8 +25,11 @@ go build -o docker-bench .
 # See all supported options
 ./docker-bench --help
 
-# Run the all checks on a master node
+# Run checks
 ./docker-bench
+
+# Run checks for specified Docker version
+./docker-bench --version 1.13.0
 
 ```
 

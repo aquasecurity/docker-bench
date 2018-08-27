@@ -39,7 +39,7 @@ func app(cmd *cobra.Command, args []string) {
 		util.ExitWithError(err)
 	}
 
-	summary := runControls(controls)
+	summary := runControls(controls, checkList)
 	err = outputResults(controls, summary)
 	if err != nil {
 		util.ExitWithError(err)
@@ -62,7 +62,7 @@ func outputResults(controls *check.Controls, summary check.Summary) error {
 	return nil
 }
 
-func runControls(controls *check.Controls) check.Summary {
+func runControls(controls *check.Controls, checkList string) check.Summary {
 	var summary check.Summary
 
 	if checkList != "" {

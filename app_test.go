@@ -57,5 +57,10 @@ func TestRunControls(t *testing.T) {
 		t.Errorf("unexpected error: %s\n", err)
 	}
 
-	_ = runControls(control)
+	// Run all checks
+	_ = runControls(control, "")
+
+	// Run only specified checks
+	checkList := "1.2, 2.1"
+	_ = runControls(control, checkList)
 }

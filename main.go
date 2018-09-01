@@ -14,10 +14,6 @@
 
 package main
 
-import (
-	"github.com/aquasecurity/docker-bench/cmd"
-)
-
 func main() {
-	cmd.Execute()
+	Execute()
 }

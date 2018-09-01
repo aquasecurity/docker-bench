@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package main
 
 import (
 	"fmt"
@@ -25,7 +25,12 @@ import (
 )
 
 var (
-	dbDir = "appdb"
+	cfgDir        = "cfg"
+	dockerVersion = "17.06"
+
+	noResults      bool
+	noSummary      bool
+	noRemediations bool
 
 	cfgFile   string
 	checkList string
@@ -68,15 +73,12 @@ func init() {
 	//	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.docker-bench.yaml)")
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	RootCmd.Flags().StringVarP(&name, "name", "n", "", "name of app to run check against")
-	viper.BindPFlag("name", RootCmd.Flags().Lookup("name"))
-
-	RootCmd.Flags().StringVarP(&dbDir, "dbdir", "d", "appdb", "directory to get benchmark definitions")
-	viper.BindPFlag("dbdir", RootCmd.Flags().Lookup("dbdir"))
-
+	RootCmd.PersistentFlags().BoolVar(&noResults, "noresults", false, "Disable printing of results section")
+	RootCmd.PersistentFlags().BoolVar(&noSummary, "nosummary", false, "Disable printing of summary section")
+	RootCmd.PersistentFlags().BoolVar(&noRemediations, "noremediations", false, "Disable printing of remediations section")
+	RootCmd.Flags().StringVarP(&dockerVersion, "version", "", "", "Specify Docker version, automatically detected if unset")
+	RootCmd.Flags().StringVarP(&cfgDir, "config-dir", "D", "cfg", "directory to get benchmark definitions")
 	RootCmd.PersistentFlags().BoolVar(&jsonFmt, "json", false, "Prints the results as JSON")
-	viper.BindPFlag("json", RootCmd.Flags().Lookup("json"))
-
 	RootCmd.PersistentFlags().StringVarP(
 		&checkList,
 		"check",

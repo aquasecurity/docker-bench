@@ -244,7 +244,7 @@ groups:
     scored: true
 
   - id: 2.2
-    description: "Ensure the logging level is set to 'info' (Scored)"
+    description: "Set the logging level (Scored)"
     audit: "ps -ef | grep docker"
     tests:
       bin_op: or
@@ -261,7 +261,7 @@ groups:
     scored: true
 
   - id: 2.3
-    description: "Ensure Docker is allowed to make changes to iptables (Scored)"
+    description: "Allow Docker to make changes to iptables (Scored)"
     audit: "ps -ef | grep dockerd"
     tests:
       bin_op: or
@@ -280,7 +280,7 @@ groups:
     scored: true
 
   - id: 2.4
-    description: "Ensure insecure registries are not used (Scored)"
+    description: "Do not use insecure registries (Scored)"
     audit: "ps -ef | grep dockerd"
     tests:
       test_items:
@@ -293,7 +293,7 @@ groups:
     scored: true
 
   - id: 2.5
-    description: "Ensure aufs storage driver is not used (Scored)"
+    description: "Do not use the aufs storage driver (Scored)"
     audit: docker info | grep -e "^Storage Driver:\s*aufs\s*$"
     tests:
       test_items:
@@ -309,7 +309,7 @@ groups:
     scored: true
 
   - id: 2.6
-    description: "Ensure TLS authentication for Docker daemon is configured (Scored)"
+    description: "Configure TLS authentication for Docker daemon (Scored)"
     audit: ps -ef | grep dockerd
     tests:
       test_items:
@@ -326,7 +326,7 @@ groups:
     scored: true
 
   - id: 2.7
-    description: "Ensure the default ulimit is configured appropriately (Not Scored)"
+    description: "Set default ulimit as appropriate (Not Scored)"
     audit: ps -ef | grep dockerd
     type: manual
     tests:
@@ -363,7 +363,7 @@ groups:
     scored: true
 
   - id: 2.9
-    description: "Ensure the default cgroup usage has been confirmed (Scored)"
+    description: "Confirm default cgroup usage (Scored)"
     audit: ps -ef | grep dockerd
     tests:
       bin_op: or
@@ -383,7 +383,7 @@ groups:
     scored: true
 
   - id: 2.10
-    description: "Ensure base device size is not changed until needed (Scored)"
+    description: "Do not change base device size until needed (Scored)"
     audit: ps -ef | grep dockerd
     tests:
       test_items:
@@ -394,8 +394,7 @@ groups:
     scored: true
 
   - id: 2.11
-    description: "Ensure that authorization for Docker client commands is enabled
-    (Scored)"
+    description: "Use authorization plugin (Scored)"
     audit: ps -ef | grep dockerd
     tests:
       test_items:
@@ -409,7 +408,7 @@ groups:
     scored: true
 
   - id: 2.12
-    description: "Ensure centralized and remote logging is configured (Scored)"
+    description: "Configure centralized and remote logging (Scored)"
     audit: ps -ef | grep dockerd
     type: manual
     tests:
@@ -424,7 +423,7 @@ groups:
     scored: true
 
   - id: 2.13
-    description: "Ensure operations on legacy registry (v1) are Disabled (Scored)"
+    description: "Disable operations on legacy registry (v1) (Scored)"
     audit: ps -ef | grep dockerd
     tests:
       test_items:
@@ -436,7 +435,7 @@ groups:
     scored: true
 
   - id: 2.14
-    description: "Ensure live restore is Enabled (Scored)"
+    description: "Enable live restore (Scored)"
     audit: ps -ef | grep dockerd
     tests:
       test_items:
@@ -478,7 +477,7 @@ groups:
     scored: true
 
   - id: 2.18
-    description: "Ensure Userland Proxy is Disabled (Scored)"
+    description: "Disable Userland Proxy (Scored)"
     audit: ps -ef | grep dockerd
     tests:
       test_items:
@@ -508,8 +507,7 @@ groups:
     scored: true
 
   - id: 2.20
-    description: "Ensure daemon-wide custom seccomp profile is applied, if needed
-    (Not Scored)"
+    description: "Apply a daemon-wide custom seccomp profile, if needed (Not Scored)"
     audit: docker info --format '{{ .SecurityOptions }}'
     tests:
       test_items:
@@ -527,7 +525,7 @@ groups:
     scored: false
 
   - id: 2.21
-    description: "Ensure experimental features are avoided in production (Scored)"
+    description: "Avoid experimental features in production (Scored)"
     audit: docker version --format '{{ .Server.Experimental }}'
     tests:
       test_items:

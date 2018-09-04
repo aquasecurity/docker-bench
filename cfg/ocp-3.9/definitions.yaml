@@ -1,0 +1,1645 @@
+---
+controls:
+id: " "
+description: "CIS Docker Community Edition Benchmark"
+groups:
+- id: 1
+  description: "Host Configuration"
+  checks:
+  - id: 1.1
+    description: "Ensure a separate partition for containers has been created (Scored)"
+    audit: grep /var/lib/docker /etc/fstab
+    tests:
+      test_items:
+      - flag: "/var/lib/docker"
+        compare:
+          op: has
+          value: "/var/lib/docker"
+        set: true
+    remediation: "For new installations, create a separate partition for /var/lib/docker
+    mount point. For systems that were previously installed, use the Logical Volume Manager
+    (LVM) to create partitions."
+    scored: true
+
+  - id: 1.2
+    description: "Ensure the container host has been Hardened (Not Scored)"
+    type: manual
+    remediation: "You may consider various CIS Security Benchmarks for your container host.
+    If you have other security guidelines or regulatory requirements to adhere to, please 
+    follow them as suitable in your environment.
+    Additionally, you can run a kernel with grsecurity and PaX . This would add many safety
+    checks, both at compile-time and run-time. It is also designed to defeat many exploits and
+    has powerful security features. These features do not require Docker-specific
+    configuration, since those security features apply system-wide, independent of containers."
+    scored: false
+
+  - id: 1.3
+    description: "Ensure Docker is up to date (Not Scored)"
+    audit: "docker version"
+    type: manual
+    remediation: "Keep a track of Docker releases and update as necessary."
+    scored: false
+
+  - id: 1.4
+    description: "Ensure only trusted users are allowed to control Docker daemon (Scored)"
+    audit: "getent group docker"
+    type: manual
+    remediation: "Remove any users from the docker group that are not trusted. Additionally,
+    do not create a mapping of sensitive directories on host to container volumes."
+    scored: true
+
+  - id: 1.5
+    description: "Ensure auditing is configured for the docker daemon (Scored)"
+    audit: "auditctl -l | grep /usr/bin/docker"
+    tests:
+      test_items:
+      - flag: "/usr/bin/docker"
+        compare:
+          op: has
+          value: "/usr/bin/docker"
+        set: true
+    remediation: "Add a rule for Docker daemon.
+        For example,
+        Add the line as below line in /etc/audit/audit.rules file:\n
+        -w /usr/bin/docker -k docker\n
+        Then, restart the audit daemon. For example,\n
+        service auditd restart"
+    scored: true
+
+  - id: 1.6
+    description: "Ensure auditing is configured for Docker files and directories - 
+    /var/lib/docker (Scored)"
+    audit: "auditctl -l | grep /var/lib/docker"
+    tests:
+      test_items:
+      - flag: "/var/lib/docker"
+        compare:
+          op: has
+          value: "/var/lib/docker"
+        set: true
+    remediation: "Add a rule for /var/lib/docker directory.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /var/lib/docker -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+  - id: 1.7
+    description: "Ensure auditing is configured for Docker files and directories -
+    /etc/docker (Scored)"
+    audit: "auditctl -l | grep /etc/docker"
+    tests:
+      test_items:
+      - flag: "/etc/docker"
+        compare:
+          op: has
+          value: "/etc/docker"
+        set: true
+    remediation: "Add a rule for /etc/docker directory.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /etc/docker -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+    # Revisit this check
+  - id: 1.8
+    description: "Ensure auditing is configured for Docker files and directories -
+    docker.service (Scored)"
+    audit: "auditctl -l | grep docker.service"
+    tests:
+      test_items:
+      - flag: "docker.service"
+        compare:
+          op: has
+          value: "docker.service"
+        set: true
+    remediation: "If the file exists, add a rule for it.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /usr/lib/systemd/system/docker.service -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+    # Revisit this check
+  - id: 1.9
+    description: "Ensure auditing is configured for Docker files and directories -
+    docker.socket (Scored)"
+    audit: "auditctl -l | grep docker.socket"
+    tests:
+      test_items:
+      - flag: "docker.socket"
+        compare:
+          op: has
+          value: "docker.socket"
+        set: true
+    remediation: "If the file exists, add a rule for it.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /usr/lib/systemd/system/docker.socket -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+  - id: 1.10
+    description: "Ensure auditing is configured for Docker files and directories -
+    /etc/default/docker (Scored)"
+    audit: "auditctl -l | grep /etc/default/docker"
+    tests:
+      test_items:
+      - flag: "/etc/default/docker"
+        compare:
+          op: has
+          value: "/etc/default/docker"
+        set: true
+    remediation: "Add a rule for /etc/default/docker file.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /etc/default/docker -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+  - id: 1.11
+    description: "Ensure auditing is configured for Docker files and directories -
+    /etc/docker/daemon.json (Scored)"
+    audit: "auditctl -l | grep /etc/docker/daemon.json"
+    tests:
+      test_items:
+      - flag: "/etc/docker/daemon.json"
+        compare:
+          op: has
+          value: "/etc/docker/daemon.json"
+        set: true
+    remediation: "Add a rule for /etc/docker/daemon.json file.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /etc/docker/daemon.json -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+  - id: 1.12
+    description: "Ensure auditing is configured for Docker files and directories -
+    /usr/bin/docker-containerd (Scored)"
+    audit: "auditctl -l | grep /usr/bin/docker-containerd"
+    tests:
+      test_items:
+      - flag: "/usr/bin/docker-containerd"
+        compare:
+          op: has
+          value: "/usr/bin/docker-containerd"
+        set: true
+    remediation: "Add a rule for /usr/bin/docker-containerd file.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /usr/bin/docker-containerd -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+  - id: 1.13
+    description: "Ensure auditing is configured for Docker files and directories -
+    /usr/bin/docker-runc (Scored)"
+    audit: "auditctl -l | grep /usr/bin/docker-runc"
+    tests:
+      test_items:
+      - flag: "/usr/bin/docker-runc"
+        compare:
+          op: has
+          value: "/usr/bin/docker-runc"
+        set: true
+    remediation: "Add a rule for /usr/bin/docker-runc file.
+    For example,
+    Add the line as below in /etc/audit/audit.rules file:\n
+    -w /usr/bin/docker-runc -k docker\n
+    Then, restart the audit daemon. For example,\n
+    service auditd restart"
+    scored: true
+
+- id: 2
+  description: "Docker daemon configuration"
+  checks:
+  - id: 2.1
+    description: "Restrict network traffic between containers (Scored)"
+    audit: "docker network ls --quiet | xargs docker network inspect --format '{{ .Name }}: {{ .Options }}'"
+    tests:
+      test_items:
+      - flag: "com.docker.network.bridge.enable_icc:false"
+        compare:
+          op: has
+          value: "com.docker.network.bridge.enable_icc:false"
+        set: true
+    remediation: |
+      Run the docker in daemon mode and pass --icc=false as an argument.
+      For Example,
+      dockerd --icc=false
+      Alternatively, you can follow the Docker documentation and create a custom network and
+      only join containers that need to communicate to that custom network. The --icc
+      parameter only applies to the default docker bridge, if custom networks are used then the
+      approach of segmenting networks should be adopted instead.
+    scored: true
+
+  - id: 2.2
+    description: "Set the logging level (Scored)"
+    audit: "ps -ef | grep docker"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "--log-level"
+        set: false
+      - flag: "--log-level"
+        compare:
+          op: eq
+          value: "info"
+        set: true
+    remediation: |
+      ps -ef | grep docker
+    scored: true
+
+  - id: 2.3
+    description: "Allow Docker to make changes to iptables (Scored)"
+    audit: "ps -ef | grep dockerd"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "--iptables"
+        set: false
+      - flag: "--iptables"
+        compare:
+          op: eq
+          value: true
+        set: true
+    remediation: |
+      Do not run the Docker daemon with --iptables=false parameter. For example, do not
+      start the Docker daemon as below:
+      dockerd --iptables=false
+    scored: true
+
+  - id: 2.4
+    description: "Do not use insecure registries (Scored)"
+    audit: "ps -ef | grep dockerd"
+    tests:
+      test_items:
+      - flag: "--insecure-registry"
+        set: false
+    remediation: |
+      Do not use any insecure registries.
+      For example, do not start the Docker daemon as below:
+      dockerd --insecure-registry 10.1.0.0/16
+    scored: true
+
+  - id: 2.5
+    description: "Do not use the aufs storage driver (Scored)"
+    audit: docker info | grep -e "^Storage Driver:\s*aufs\s*$"
+    tests:
+      test_items:
+      - flag: "storage-driver"
+        compare:
+          op: eq
+          value: ""
+        set: true
+    remediation: |
+      Do not explicitly use aufs as storage driver.
+      For example, do not start Docker daemon as below:
+      dockerd --storage-driver aufs
+    scored: true
+
+  - id: 2.6
+    description: "Configure TLS authentication for Docker daemon (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--tlsverify"
+        set: true
+      - flag: "--tlscacert"
+        set: true
+      - flag: "--tlscert"
+        set: true
+      - flag: "--tlskey"
+        set: true
+    remediation: |
+      Follow the steps mentioned in the Docker documentation or other references.
+    scored: true
+
+  - id: 2.7
+    description: "Set default ulimit as appropriate (Not Scored)"
+    audit: ps -ef | grep dockerd
+    type: manual
+    tests:
+      test_items:
+      - flag: "--default-ulimit"
+        set: true
+    remediation: |
+      Run the docker in daemon mode and pass --default-ulimit as argument with respective
+      ulimits as appropriate in your environment.
+      For Example,
+      dockerd --default-ulimit nproc=1024:2048 --default-ulimit nofile=100:200
+    scored: false
+
+  - id: 2.8
+    description: "Enable user namespace support (Scored)"
+    audit: docker info --format '{{ .SecurityOptions }}'
+    tests:
+      test_items:
+      - flag: "userns"
+        compare:
+          op: has
+          value: "userns"
+        set: true
+    remediation: |
+      Please consult Docker documentation for various ways in which this can be configured
+      depending upon your requirements. Your steps might also vary based on platform - For
+      example, on Red Hat, sub-UIDs and sub-GIDs mapping creation does not work
+      automatically. You might have to create your own mapping.
+      However, the high-level steps are as below:
+      Step 1: Ensure that the files /etc/subuid and /etc/subgid exist.
+      touch /etc/subuid /etc/subgid
+      Step 2: Start the docker daemon with --userns-remap flag
+      dockerd --userns-remap=default
+    scored: true
+
+  - id: 2.9
+    description: "Confirm default cgroup usage (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "--cgroup-parent"
+        set: false
+      - flag: "--cgroup-parent"
+        compare:
+          op: nothave
+          value: "/docker"
+        set: true
+    remediation: |
+      The default setting is good enough and can be left as-is. If you want to specifically set a non-
+      default cgroup, pass --cgroup-parent parameter to the docker daemon when starting it.
+      For Example,
+      dockerd --cgroup-parent=/foobar
+    scored: true
+
+  - id: 2.10
+    description: "Do not change base device size until needed (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--storage-opt"
+        set: false
+    remediation: |
+      Do not set --storage-opt dm.basesize until needed.
+    scored: true
+
+  - id: 2.11
+    description: "Use authorization plugin (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--authorization-plugin"
+        set: true
+    remediation: |
+      Step 1: Install/Create an authorization plugin.
+      Step 2: Configure the authorization policy as desired.
+      Step 3: Start the docker daemon as below:
+      dockerd --authorization-plugin=<PLUGIN_ID>
+    scored: true
+
+  - id: 2.12
+    description: "Configure centralized and remote logging (Scored)"
+    audit: ps -ef | grep dockerd
+    type: manual
+    tests:
+      test_items:
+      - flag: "--log-driver"
+        set: true
+    remediation: |
+      Step 1: Setup the desired log driver by following its documentation.
+      Step 2: Start the docker daemon with that logging driver.
+      For example,
+      dockerd --log-driver=syslog --log-opt syslog-address=tcp://192.xxx.xxx.xxx
+    scored: true
+
+  - id: 2.13
+    description: "Disable operations on legacy registry (v1) (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--disable-legacy-registry"
+        set: true
+    remediation: |
+      Start the docker daemon as below:
+      dockerd --disable-legacy-registry
+    scored: true
+
+  - id: 2.14
+    description: "Enable live restore (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--live-restore"
+        set: true
+    remediation: |
+      Run the docker in daemon mode and pass --live-restore as an argument.
+      For Example,
+      dockerd --live-restore
+    scored: true
+
+  - id: 2.15
+    description: "Do not enable swarm mode, if not needed (Scored)"
+    audit: docker info --format '{{ .Swarm }}'
+    type: manual
+    remediation: |
+      If swarm mode has been enabled on a system in error, run
+      docker swarm leave
+    scored: true
+
+#  - id: 2.16
+#    description: "Control the number of manager nodes in a swarm (Scored)"
+#    audit: docker info --format '{{ .Swarm.Managers }}'
+#    type: manual
+#    remediation: |
+#      If an excessive number of managers is configured, the excess can be demoted as worker
+#      using the following command:
+#        docker node demote <ID>
+#      Where <ID> is the node ID value of the manager to be demoted.
+#    scored: true
+#
+#  - id: 2.17
+#    description: "Bind swarm services to a specific host interface (Scored)"
+#    audit: netstat -lt | grep -i 2377
+#    type: manual
+#    remediation: |
+#      Remediation of this requires re-initialization of the swarm specifying a specific interface
+#      for the --listen-addr parameter.
+#    scored: true
+
+  - id: 2.18
+    description: "Disable Userland Proxy (Scored)"
+    audit: ps -ef | grep dockerd
+    tests:
+      test_items:
+      - flag: "--userland-proxy"
+        compare:
+          op: eq
+          value: "false"
+        set: true
+    remediation: |
+      Run the Docker daemon as below:
+      dockerd --userland-proxy=false
+    scored: true
+
+  - id: 2.19
+    description: "Encrypt data exchanged between containers on different nodes
+    on the overlay network (Scored)"
+    audit: docker network ls --filter driver=overlay --quiet | xargs docker network inspect --format '{{.Name}} {{ .Options }}' | grep encrypted
+    tests:
+      test_items:
+      - flag: "encrypted"
+        compare:
+          op: have
+          value: "encrypted"
+        set: true
+    remediation: |
+      Create overlay network with --opt encrypted flag.
+    scored: true
+
+  - id: 2.20
+    description: "Apply a daemon-wide custom seccomp profile, if needed (Not Scored)"
+    audit: docker info --format '{{ .SecurityOptions }}'
+    tests:
+      test_items:
+      - flag: "profile"
+        compare:
+          op: has
+          value: "default"
+        set: true
+    remediation: |
+      By default, Docker's default seccomp profile is applied. If this is good for your environment,
+      no action is necessary. Alternatively, if you choose to apply your own seccomp profile, use
+      the --seccomp-profile flag at daemon start or put it in the daemon runtime parameters
+      file.
+      dockerd --seccomp-profile </path/to/seccomp/profile>
+    scored: false
+
+  - id: 2.21
+    description: "Avoid experimental features in production (Scored)"
+    audit: docker version --format '{{ .Server.Experimental }}'
+    tests:
+      test_items:
+      - flag: "false"
+        compare:
+          op: eq
+          value: "false"
+        set: true
+    remediation: |
+      Do not pass --experimental as a runtime parameter to the docker daemon.
+    scored: true
+
+- id: 3
+  description: "Docker daemon configuration files"
+  checks:
+  - id: 3.1
+    description: "Ensure that docker.service file ownership is set to root:root (Scored)"
+    audit: systemctl show -p FragmentPath docker.service | cut -d= -f2 | xargs stat -c %U:%G
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      Step 1: Find out the file location:
+      systemctl show -p FragmentPath docker.service
+      Step 2: If the file does not exist, this recommendation is not applicable. If the file exists,
+      execute the below command with the correct file path to set the ownership and group
+      ownership for the file to root .
+      For example,
+      chown root:root /usr/lib/systemd/system/docker.service
+    scored: true
+
+  - id: 3.2
+    description: "Ensure that docker.service file permissions are set to 644 or more
+    restrictive (Scored)"
+    audit: systemctl show -p FragmentPath docker.service | cut -d= -f2 | xargs stat -c %a
+    tests:
+      test_items:
+      - flag: "644"
+        compare:
+          op: eq
+          value: "644"
+        set: true
+    remediation: |
+      Step 1: Find out the file location:
+      systemctl show -p FragmentPath docker.service
+      Step 2: If the file does not exist, this recommendation is not applicable. If the file exists,
+      execute the below command with the correct file path to set the file permissions to 644 .
+      For example,
+      chmod 644 /usr/lib/systemd/system/docker.service
+    scored: true
+
+  - id: 3.3
+    description: "Ensure that docker.socket file ownership is set to root:root (Scored)"
+    audit: systemctl show -p FragmentPath docker.socket | cut -d= -f2 | xargs stat -c %U:%G
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      Step 1: Find out the file location:
+      systemctl show -p FragmentPath docker.socket
+      Step 2: If the file does not exist, this recommendation is not applicable. If the file exists,
+      execute the below command with the correct file path to set the ownership and group
+      ownership for the file to root .
+      For example,
+      chown root:root /usr/lib/systemd/system/docker.socket
+    scored: true
+
+  - id: 3.4
+    description: "Ensure that docker.socket file permissions are set to 644 or more
+    restrictive (Scored)"
+    audit: systemctl show -p FragmentPath docker.socket | cut -d= -f2 | xargs stat -c %a
+    tests:
+      test_items:
+      - flag: "644"
+        compare:
+          op: eq
+          value: "644"
+        set: true
+    remediation: |
+      Step 1: Find out the file location:
+      systemctl show -p FragmentPath docker.socket
+      Step 2: If the file does not exist, this recommendation is not applicable. If the file exists,
+      execute the below command with the correct file path to set the file permissions to 644 .
+      For example,
+      chmod 644 /usr/lib/systemd/system/docker.socket
+    scored: true
+
+  - id: 3.5
+    description: "Ensure that /etc/docker directory ownership is set to root:root
+    (Scored)"
+    audit: stat -c %U:%G /etc/docker
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      chown root:root /etc/docker
+      This would set the ownership and group-ownership for the directory to root .
+    scored: true
+
+  - id: 3.6
+    description: "Ensure that /etc/docker directory permissions are set to 755 or more
+    restrictive (Scored)"
+    audit: stat -c %a /etc/docker
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "755"
+        compare:
+          op: eq
+          value: "755"
+        set: true
+      - flag: "750"
+        compare:
+          op: eq
+          value: "750"
+        set: true
+      - flag: "700"
+        compare:
+          op: eq
+          value: "700"
+        set: true
+    remediation: |
+      chmod 755 /etc/docker
+      This would set the permissions for the directory to 755 .
+    scored: true
+
+  - id: 3.7
+    description: "Ensure that registry certificate file ownership is set to root:root
+    (Scored)"
+    audit: /bin/sh -c "if [ -d /etc/docker/certs.d ]; then stat -c %U:%G /etc/docker/certs.d/*; fi"
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: ""
+        set: true
+    remediation: |
+      chown root:root /etc/docker/certs.d/<registry-name>/*
+      This would set the ownership and group-ownership for the registry certificate files to root .
+    scored: true
+
+  - id: 3.8
+    description: "Ensure that registry certificate file permissions are set to 444 or
+    more restrictive (Scored)"
+    audit: /bin/sh -c "if [ -d /etc/docker/certs.d ]; then stat -c %a /etc/docker/certs.d/*; fi"
+    tests:
+      test_items:
+      - flag: "444"
+        compare:
+          op: eq
+          value: "444"
+        set: true
+    remediation: |
+      chmod 444 /etc/docker/certs.d/<registry-name>/*
+      This would set the permissions for registry certificate files to 444 .
+    scored: true
+
+#  - id: 3.9
+#    description: "Ensure that TLS CA certificate file ownership is set to root:root
+#    (Scored)"
+#    type: manual
+#    remediation: |
+#      chown root:root <path to TLS CA certificate file>
+#      This would set the ownership and group-ownership for the TLS CA certificate file to root .
+#    scored: true
+#
+#  - id: 3.10
+#    description: "Ensure that TLS CA certificate file permissions are set to 444 or
+#    more restrictive (Scored)"
+#    type: manual
+#    remediation: |
+#      chmod 444 <path to TLS CA certificate file>
+#      This would set the file permissions of the TLS CA file to 444 .
+#    scored: true
+#
+#  - id: 3.11
+#    description: "Ensure that Docker server certificate file ownership is set to
+#    root:root (Scored)"
+#    type: manual
+#    remediation: |
+#      chown root:root <path to Docker server certificate file>
+#      This would set the ownership and group-ownership for the Docker server certificate file to
+#      root .
+#    scored: true
+#
+#  - id: 3.12
+#    description: "Ensure that Docker server certificate file permissions are set to 444
+#    or more restrictive (Scored)"
+#    type: manual
+#    remediation: |
+#      chmod 444 <path to Docker server certificate file>
+#      This would set the file permissions of the Docker server file to 444 .
+#    scored: true
+#
+#  - id: 3.13
+#    description: "Ensure that Docker server certificate key file ownership is set to
+#    root:root (Scored)"
+#    type: manual
+#    remediation: |
+#      chown root:root <path to Docker server certificate key file>
+#      This would set the ownership and group-ownership for the Docker server certificate key
+#      file to root.
+#    scored: true
+#
+#  - id: 3.14
+#    description: "Ensure that Docker server certificate key file permissions are set to
+#    400 (Scored)"
+#    type: manual
+#    remediation: |
+#      chmod 400 <path to Docker server certificate key file>
+#      This would set the Docker server certificate key file permissions to 400 .
+#    scored: true
+#
+  - id: 3.15
+    description: "Ensure that Docker socket file ownership is set to root:docker
+    (Scored)"
+    audit: /bin/sh -c "if [ -f /var/run/docker.sock ]; then stat -c %U:%G /var/run/docker.sock; fi"
+    tests:
+      test_items:
+      - flag: "root:docker"
+        compare:
+          op: eq
+          value: "root:docker"
+        set: true
+    remediation: |
+      chown root:docker /var/run/docker.sock
+      This would set the ownership to root and group-ownership to docker for default Docker
+      socket file.
+    scored: true
+
+  - id: 3.16
+    description: "Ensure that Docker socket file permissions are set to 660 or more
+    restrictive (Scored)"
+    audit: /bin/sh -c "if [ -f /var/run/docker.sock ]; then stat -c %a /var/run/docker.sock; fi"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "660"
+        compare:
+          op: eq
+          value: "660"
+        set: true
+      test_items:
+      - flag: "600"
+        compare:
+          op: eq
+          value: "600"
+        set: true
+    remediation: |
+      chmod 660 /var/run/docker.sock
+      This would set the file permissions of the Docker socket file to 660 .
+    scored: true
+
+#  - id: 3.17
+#    description: "Ensure that daemon.json file ownership is set to root:root (Scored)"
+#    audit: /bin/sh -c "if [ -f /etc/docker/daemon.json ]; then stat -c %U:%G /etc/docker/daemon.json; fi"
+#    tests:
+#      test_items:
+#      - flag: "root:root"
+#        compare:
+#          op: eq
+#          value: "root:root"
+#        set: true
+#    remediation: |
+#      chown root:root /etc/docker/daemon.json
+#      This would set the ownership and group-ownership for the file to root .
+#    scored: true
+#
+#  - id: 3.18
+#    description: "Ensure that daemon.json file permissions are set to 644 or more
+#    restrictive (Scored)"
+#    audit: /bin/sh -c "if [ -f /etc/docker/daemon.json ]; then stat -c %a /etc/docker/daemon.json; fi"
+#    tests:
+#      bin_op: or
+#      test_items:
+#      - flag: "644"
+#        compare:
+#          op: eq
+#          value: "644"
+#        set: true
+#      - flag: "640"
+#        compare:
+#          op: eq
+#          value: "640"
+#        set: true
+#      - flag: "600"
+#        compare:
+#          op: eq
+#          value: "600"
+#        set: true
+#    remediation: |
+#      chown root:root /etc/default/docker
+#      This would set the ownership and group-ownership for the file to root .
+#    scored: true
+#
+#  - id: 3.19
+#    description: "Ensure that /etc/default/docker file ownership is set to root:root
+#    (Scored)"
+#    audit: /bin/sh -c "if [ -f /etc/default/docker ]; then stat -c %U:%G /etc/default/docker; fi"
+#    tests:
+#      test_items:
+#      - flag: "root:root"
+#        compare:
+#          op: eq
+#          value: "root:root"
+#        set: true
+#    remediation: |
+#      chown root:root /etc/default/docker
+#      This would set the ownership and group-ownership for the file to root .
+#    scored: true
+#
+#  - id: 3.20
+#    description: "Ensure that /etc/default/docker file permissions are set to 644 or
+#    more restrictive (Scored)"
+#    audit: /bin/sh -c "if [ -f /etc/default/docker ]; then stat -c %a /etc/default/docker; fi"
+#    tests:
+#      bin_op: or
+#      test_items:
+#      - flag: "644"
+#        compare:
+#          op: eq
+#          value: "644"
+#        set: true
+#      - flag: "640"
+#        compare:
+#          op: eq
+#          value: "640"
+#        set: true
+#      - flag: "600"
+#        compare:
+#          op: eq
+#          value: "600"
+#        set: true
+#    remediation: |
+#      chmod 644 /etc/default/docker
+#      This would set the file permissions for this file to 644.
+#    scored: true
+
+- id: 4
+  description: "Container Images and Build File"
+  checks:
+  - id: 4.1
+    description: "Ensure a user for the container has been created (Scored)"
+    audit: "docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}: User={{ .Config.User }}'"
+    tests:
+      test_items:
+      - flag: "root"
+        compare:
+          op: nothave
+          value: "root"
+        set: true
+    remediation: |
+       Ensure that the Dockerfile for the container image contains below instruction:
+       USER <username or ID>
+       where username or ID refers to the user that could be found in the container base image. If
+       there is no specific user created in the container base image, then add a useradd command
+       to add the specific user before USER instruction.
+       For example, add the below lines in the Dockerfile to create a user in the container:
+       RUN useradd -d /home/username -m -s /bin/bash username
+       USER username
+       Note: If there are users in the image that the containers do not need, consider deleting
+       them. After deleting those users, commit the image and then generate new instances of
+       containers for use.
+    scored: true
+
+  - id: 4.2
+    description: "Ensure that containers use trusted base images (Not Scored)"
+    type: manual
+    remediation: |
+      - Configure and use Docker Content trust.
+      - Inspect Docker image history to evaluate their risk to operate on your network.
+      - Scan Docker images for vulnerabilities in their dependencies and configurations
+        they will impose upon your network.
+    scored: false
+ 
+  - id: 4.3
+    description: "Ensure unnecessary packages are not installed in the container (Not Scored)"
+    type: manual
+    remediation: |
+      At the outset, do not install anything on the container that does not justify the purpose. If
+      the image had some packages that your container does not use, uninstall them.
+      Consider using a minimal base image rather than the standard Redhat/Centos/Debian
+      images if you can. Some of the options include BusyBox and Alpine.
+      Not only does this trim your image size from >150Mb to ~20 Mb, there are also fewer tools
+      and paths to escalate privileges. You can even remove the package installer as a final
+      hardening measure for leaf/production containers.
+    scored: false
+
+  - id: 4.4
+    description: "Ensure images are scanned and rebuilt to include security patches
+    (Not Scored)"
+    type: manual
+    remediation: |
+      Follow the below steps to rebuild the images with security patches:
+      Step 1: Pull all the base images (i.e., given your set of Dockerfiles, extract all images
+      declared in FROM instructions, and re-pull them to check for an updated/patched versions).
+      Patch the packages within the images too.
+      docker pull
+      Step 2: Force a rebuild of each image:
+      docker build --no-cache
+      Step 3: Restart all containers with the updated images.
+      You could also use ONBUILD directive in the Dockerfile to trigger particular update
+      instructions for images that you know are used as base images frequently.
+    scored: false
+
+    #### Come back here
+  - id: 4.5
+    description: "Ensure Content trust for Docker is Enabled (Scored)"
+    audit: echo $DOCKER_CONTENT_TRUST
+    tests:
+      test_items:
+      - flag: 1
+        compare:
+          op: has
+          value: 1
+        set: true
+    remediation: |
+      To enable content trust in a bash shell, enter the following command:
+      export DOCKER_CONTENT_TRUST=1
+      Alternatively, set this environment variable in your profile file so that content trust in
+      enabled on every login.
+    scored: true
+
+  - id: 4.6
+    description: "Ensure HEALTHCHECK instructions have been added to the container
+    image (Scored)"
+    type: manual
+    remediation: |
+      Follow Docker documentation and rebuild your container image with HEALTHCHECK
+      instruction.
+    scored: true
+
+  - id: 4.7
+    description: "Ensure update instructions are not use alone in the Dockerfile (Not
+    Scored)"
+    type: manual
+    remediation: |
+      Use update instructions along with install instructions (or any other) and version pinning
+      for packages while installing them. This would bust the cache and force to extract the
+      required versions.
+      Alternatively, you could use --no-cache flag during docker build process to avoid using
+      cached layers.
+    scored: false
+
+  - id: 4.8
+    description: "Ensure setuid and setgid permissions are removed in the images
+    (Not Scored)"
+    type: manual
+    remediation: |
+      Allow setuid and setgid permissions only on executables which need them. You could
+      remove these permissions during build time by adding the following command in your
+      Dockerfile, preferably towards the end of the Dockerfile:
+      RUN find / -perm +6000 -type f -exec chmod a-s {} \; || true
+    scored: false
+
+  - id: 4.9
+    description: "Ensure COPY is used instead of ADD in Dockerfile (Not Scored)"
+    type: manual
+    remediation: |
+      Use COPY instructions in Dockerfiles.
+    scored: false
+
+  - id: 4.10
+    description: "Ensure secrets are not stored in Dockerfiles (Not Scored)"
+    type: manual
+    remediation: |
+    scored: false
+
+  - id: 4.11
+    description: "Ensure verified packages are only Installed (Not Scored)"
+    type: manual
+    remediation: |
+      Use GPG keys for downloading and verifying packages or any other secure package
+      distribution mechanism of your choice.
+    scored: false
+
+  - id: 4.
+    description: ""
+    #     audit: 
+    #     tests:
+    #       test_items:
+    #       - flag: ""
+    #         compare:
+    #           op: eq
+    #           value: ""
+    #         set: true
+    remediation: |
+    scored: true
+
+- id: 5
+  description: "Container Runtime"
+  checks:
+#  - id: 5.1
+#    description: "Ensure AppArmor Profile is Enabled (Scored)"
+#    type: manual
+#    remediation: |
+#      If AppArmor is applicable for your Linux OS, use it. You may have to follow below set of
+#      steps:
+#            1. Verify if AppArmor is installed. If not, install it.
+#            2. Create or import a AppArmor profile for Docker containers.
+#            3. Put this profile in enforcing mode.
+#            4. Start your Docker container using the customized AppArmor profile. For example,
+#      docker run --interactive --tty --security-opt="apparmor:PROFILENAME" centos
+#      /bin/bash
+#    scored: true
+
+  - id: 5.2
+    description: "Ensure SELinux security options are set, if applicable (Scored)"
+    type: manual
+    remediation: |
+      If SELinux is applicable for your Linux OS, use it. You may have to follow below set of steps:
+              1. Set the SELinux State.
+              2. Set the SELinux Policy.
+              3. Create or import a SELinux policy template for Docker containers.
+              4. Start Docker in daemon mode with SELinux enabled. For example,
+        docker daemon --selinux-enabled
+              5. Start your Docker container using the security options. For example,
+        docker run --interactive --tty --security-opt label=level:TopSecret centos
+        /bin/bash
+    scored: true
+
+  - id: 5.3
+    description: "Ensure Linux Kernel Capabilities are restricted within containers
+    (Scored)"
+    type: manual
+    remediation: |
+      Execute the below command to add needed capabilities:
+      $> docker run --cap-add={"Capability 1","Capability 2"}
+      For example,
+      docker run --interactive --tty --cap-add={"NET_ADMIN","SYS_ADMIN"}
+      centos:latest /bin/bash
+    scored: true
+
+  - id: 5.4
+    description: "Ensure privileged containers are not used (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Privileged={{ .HostConfig.Privileged }}'
+    tests:
+      test_items:
+      - flag: "Privileged=true"
+        set: false
+    remediation: |
+      Do not run container with the --privileged flag.
+      For example, do not start a container as below:
+      docker run --interactive --tty --privileged centos /bin/bash
+    scored: true
+
+  - id: 5.5
+    description: "Ensure sensitive host system directories are not mounted on
+    containers (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Volumes={{ .Mounts }}'
+    tests:
+      test_items:
+      - flag: "Source:/ Destination"
+        set: false
+      - flag: "Source:/boot Destination"
+        set: false
+      - flag: "Source:/dev Destination"
+        set: false
+      - flag: "Source:/etc Destination"
+        set: false
+      - flag: "Source:/lib Destination"
+        set: false
+      - flag: "Source:/proc Destination"
+        set: false
+      - flag: "Source:/sys Destination"
+        set: false
+      - flag: "Source:/usr Destination"
+        set: false
+    remediation: |
+      Do not mount host sensitive directories on containers especially in read-write mode.
+    scored: true
+
+  - id: 5.6
+    description: "Ensure ssh is not run within containers (Scored)"
+    type: manual
+    remediation: |
+      Uninstall SSH server from the container and use nsenter or any other commands such as
+      docker exec or docker attach to interact with the container instance.
+      docker exec --interactive --tty $INSTANCE_ID sh
+      OR
+      docker attach $INSTANCE_ID
+    scored: true
+
+  - id: 5.7
+    description: "Ensure privileged ports are not mapped within containers (Scored)"
+    type: manual
+    remediation: |
+      Do not map the container ports to privileged host ports when starting a container. Also,
+      ensure that there is no such container to host privileged port mapping declarations in the
+      Dockerfile.
+    scored: true
+
+  - id: 5.8
+    description: "Ensure only needed ports are open on the container (Scored)"
+    type: manual
+    remediation: |
+      Fix the Dockerfile of the container image to expose only needed ports by your
+      containerized application. You can also completely ignore the list of ports defined in the
+      Dockerfile by NOT using -P (UPPERCASE) or --publish-all flag when starting the
+      container. Use the -p (lowercase) or --publish flag to explicitly define the ports that you
+      need for a particular container instance.
+      For example,
+      docker run --interactive --tty --publish 5000 --publish 5001 --publish 5002
+      centos /bin/bash
+    scored: true
+
+  - id: 5.9
+    description: "Ensure the host's network namespace is not shared (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:NetworkMode={{ .HostConfig.NetworkMode }}'
+    tests:
+      test_items:
+      - flag: "NetworkMode=host"
+        set: false
+    remediation: |
+      Do not pass --net=host option when starting the container.
+    scored: true
+
+  - id: 5.10
+    description: "Ensure memory usage for container is limited (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Memory={{ .HostConfig.Memory }}'
+    tests:
+      test_items:
+      - flag: "Memory"
+        compare:
+          op: gt
+          value: 0
+        set: true
+    remediation: |
+      Run the container with only as much memory as required. Always run the container using
+      the --memory argument.
+      For example, you could run a container as below:
+      docker run --interactive --tty --memory 256m centos /bin/bash
+      In the above example, the container is started with a memory limit of 256 MB.
+      Note: Please note that the output of the below command would return values in scientific
+      notation if memory limits are in place.
+      docker inspect --format='{{.Config.Memory}}' 7c5a2d4c7fe0
+
+      For example, if the memory limit is set to 256 MB for the above container instance, the
+      output of the above command would be 2.68435456e+08 and NOT 256m. You should
+      convert this value using a scientific calculator or programmatic methods.
+    scored: true
+
+  - id: 5.11
+    description: "Ensure CPU priority is set appropriately on the container (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:CpuShares={{ .HostConfig.CpuShares }}' 
+    tests:
+      test_items:
+      - flag: "CpuShares"
+        compare:
+          op: gt 
+          value: 0
+        set: true
+      - flag: "CpuShares"
+        compare:
+          op: lt 
+          value: 1024
+        set: true
+    remediation: |
+      Manage the CPU shares between your containers. To do so start the container using the --
+      cpu-shares argument.
+      For example, you could run a container as below:
+      docker run --interactive --tty --cpu-shares 512 centos /bin/bash
+      In the above example, the container is started with CPU shares of 50% of what the other
+      containers use. So, if the other container has CPU shares of 80%, this container will have
+      CPU shares of 40%.
+      Note: Every new container will have 1024 shares of CPU by default. However, this value is
+      shown as 0 if you run the command mentioned in the audit section.
+    scored: true
+
+  - id: 5.12
+    description: "Ensure the container's root filesystem is mounted as read only
+    (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:ReadonlyRootfs={{ .HostConfig.ReadonlyRootfs }}'
+    tests:
+      test_items:
+      - flag: "ReadonlyRootfs=false"
+        set: false
+    remediation: |
+      Add a --read-only flag at a container's runtime to enforce the container's root filesystem
+      to be mounted as read only.
+      docker run <Run arguments> --read-only <Container Image Name or ID> <Command>
+      Enabling the --read-only option at a container's runtime should be used by administrators
+      to force a container's executable processes to only write container data to explicit storage
+      locations during the container's runtime.
+      Examples of explicit storage locations during a container's runtime include, but not limited
+      to:
+      1. Use the --tmpfs option to mount a temporary file system for non-persistent data
+      writes.
+      docker run --interactive --tty --read-only --tmpfs "/run" --tmpfs "/tmp"
+      centos /bin/bash
+      2. Enabling Docker rw mounts at a container's runtime to persist container data
+      directly on the Docker host filesystem.
+      docker run --interactive --tty --read-only -v /opt/app/data:/run/app/data:rw
+      centos /bin/bash
+      3. Utilizing Docker shared-storage volume plugins for Docker data volume to persist
+      container data.
+      docker volume create -d convoy --opt o=size=20GB my-named-volume
+      docker run --interactive --tty --read-only -v my-named-volume:/run/app/data
+      centos /bin/bash
+      3. Transmitting container data outside of the docker during the container's runtime
+      for container data to persist container data. Examples include hosted databases,
+      network file shares, and APIs.
+    scored: true
+
+  - id: 5.13
+    description: "Ensure incoming container traffic is binded to a specific host
+    interface (Scored)"
+    audit: docker ps --quiet | xargs docker inspect --format '{{ .Id }}:Ports={{ .NetworkSettings.Ports }}'
+    tests:
+      test_items:
+      - flag: "0.0.0.0"
+        set: false
+    remediation: |
+      Bind the container port to a specific host interface on the desired host port.
+      For example,
+      docker run --detach --publish 10.2.3.4:49153:80 nginx
+      In the example above, the container port 80 is bound to the host port on 49153 and would
+      accept incoming connection only from 10.2.3.4 external interface.
+    scored: true
+
+    # This test request requires multi-test capabilities
+  - id: 5.14
+    description: "Ensure 'on-failure' container restart policy is set to '5' (Scored)"
+    type: manual
+    remediation: |
+      If a container is desired to be restarted of its own, then, for example, you could start the
+      container as below:
+      docker run --detach --restart=on-failure:5 nginx
+    scored: true
+
+  - id: 5.15
+    description: "Ensure the host's process namespace is not shared (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:PidMode={{ .HostConfig.PidMode }}'
+    tests:
+      test_items:
+      - flag: "PidMode=host"
+        set: false
+    remediation: |
+      Do not start a container with --pid=host argument.
+      For example, do not start a container as below:
+      docker run --interactive --tty --pid=host centos /bin/bash
+    scored: true
+
+  - id: 5.16
+    description: "Ensure the host's IPC namespace is not shared (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:IpcMode={{ .HostConfig.IpcMode }}'
+    tests:
+      test_items:
+      - flag: "IpcMode=host"
+        set: false
+    remediation: |
+      Do not start a container with --ipc=host argument. For example, do not start a container
+      as below:
+      docker run --interactive --tty --ipc=host centos /bin/bash
+    scored: true
+
+  - id: 5.17
+    description: "Ensure host devices are not directly exposed to containers (Not
+    Scored)"
+    type: manual
+    remediation: |
+      Do not directly expose the host devices to containers. If at all, you need to expose the host
+      devices to containers, use the correct set of permissions:
+      For example, do not start a container as below:
+      docker run --interactive --tty --device=/dev/tty0:/dev/tty0:rwm --
+      device=/dev/temp_sda:/dev/temp_sda:rwm centos bash
+      For example, share the host device with correct permissions:
+      docker run --interactive --tty --device=/dev/tty0:/dev/tty0:rw --
+      device=/dev/temp_sda:/dev/temp_sda:r centos bash
+    scored: false
+
+  - id: 5.18
+    description: "Ensure the default ulimit is overwritten at runtime, only if needed
+    (Not Scored)"
+    type: manual
+    remediation: |
+      Only override the default ulimit settings if needed.
+      For example, to override default ulimit settings start a container as below:
+      docker run --ulimit nofile=1024:1024 --interactive --tty centos /bin/bash
+    scored: true
+
+  - id: 5.19
+    description: "Ensure mount propagation mode is not set to shared (Scored)"
+    type: manual
+    remediation: |
+      Do not mount volumes in shared mode propagation.
+      For example, do not start container as below:
+      docker run <Run arguments> --volume=/hostPath:/containerPath:shared
+      <Container Image Name or ID> <Command>
+    scored: true
+
+  - id: 5.20
+    description: "Ensure the host's UTS namespace is not shared (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:UTSMode={{ .HostConfig.UTSMode }}'
+    tests:
+      test_items:
+      - flag: "UTSMode=host"
+        set: false
+    remediation: |
+      Do not start a container with --uts=host argument.
+      For example, do not start a container as below:
+      docker run --rm --interactive --tty --uts=host rhel7.2
+    scored: true
+
+  - id: 5.21
+    description: "Ensure the default seccomp profile is not Disabled (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:SecurityOpt={{ .HostConfig.SecurityOpt }}'
+    tests:
+      test_items:
+      - flag: "seccomp:unconfined"
+        set: false
+    remediation: |
+      By default, seccomp profiles are enabled. You do not need to do anything unless you want
+      to modify and use the modified seccomp profile.
+    scored: true
+
+    # Revisit
+  - id: 5.22
+    description: "Ensure docker exec commands are not used with privileged option
+    (Scored)"
+    type: manual
+    remediation: |
+      Do not use --privileged option in docker exec command.
+    scored: true
+
+    # Revisit
+  - id: 5.23
+    description: "Ensure docker exec commands are not used with user option
+    (Scored)"
+    type: manual
+    remediation: |
+      Do not use --user option in docker exec command.
+    scored: true
+
+    # Revisit: issue with representing empty parameter
+  - id: 5.24
+    description: "Ensure cgroup usage is confirmed (Scored)"
+    type: manual
+    remediation: |
+      Do not use --cgroup-parent option in docker run command unless needed.
+    scored: true
+
+  - id: 5.25
+    description: "Ensure the container is restricted from acquiring additional
+    privileges (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:SecurityOpt={{ .HostConfig.SecurityOpt }}'
+    tests:
+      test_items:
+      - flag: "no-new-privileges"
+        set: true
+    remediation: |
+      For example, you should start your container as below:
+      docker run --rm -it --security-opt=no-new-privileges ubuntu bash
+    scored: true
+
+    # Revisit
+  - id: 5.26
+    description: "Ensure container health is checked at runtime (Scored)"
+    type: manual
+    remediation: |
+      Run the container using --health-cmd and the other parameters.
+      For example,
+      docker run -d --health-cmd='stat /etc/passwd || exit 1' nginx
+    scored: true
+
+  - id: 5.27
+    description: "Ensure docker commands always get the latest version of the
+    image (Not Scored)"
+    type: manual
+    remediation: |
+      Use proper version pinning mechanisms (the latest tag which is assigned by default is still
+      vulnerable to caching attacks) to avoid extracting the cached older versions. Version
+      pinning mechanisms should be used for base images, packages, and entire images too. You
+      can customize version pinning rules as per your requirements.
+    scored: false
+
+  - id: 5.28
+    description: "Ensure PIDs cgroup limit is used (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:PidsLimit={{ .HostConfig.PidsLimit }}'
+    tests:
+      test_items:
+      - flag: "PidsLimit"
+        compare:
+          op: gt
+          value: 0
+        set: true
+    remediation: |
+      Use --pids-limit flag while launching the container with an appropriate value.
+      For example,
+      docker run -it --pids-limit 100 <Image_ID>
+      In the above example, the number of processes allowed to run at any given time is set to
+      100. After a limit of 100 concurrently running processes is reached, docker would restrict
+      any new process creation.
+    scored: true
+
+  - id: 5.29
+    description: "Ensure Docker's default bridge docker0 is not used (Not Scored)"
+    audit: docker network ls --quiet | xargs xargs docker network inspect --format '{{ .Name }}:{{ .Options }}'
+    tests:
+      test_items:
+      - flag: "com.docker.network.bridge.name:docker0"
+        set: false
+    remediation: |
+      Follow Docker documentation and setup a user-defined network. Run all the containers in
+      the defined network.
+    scored: false
+
+    # Revisit: issue representing null value
+  - id: 5.30
+    description: "Ensure the host's user namespaces is not shared (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:UsernsMode={{ .HostConfig.UsernsMode }}'
+    type: manual
+    tests:
+      test_items:
+      - flag: "UsernsMode="
+        set: true
+    remediation: |
+      Do not share user namespaces between host and containers.
+      For example, do not run a container as below:
+      docker run --rm -it --userns=host ubuntu bash
+    scored: true
+
+  - id: 5.31
+    description: "Ensure the Docker socket is not mounted inside any containers
+    (Scored)"
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Volumes={{ .Mounts }}' | grep docker.sock
+    tests:
+      test_items:
+      - flag: "docker.sock"
+        set: false
+    remediation: |
+      Ensure that no containers mount docker.sock as a volume.
+    scored: true
+
+- id: 6
+  description: "Docker Security Operations"
+  checks:
+  - id: 6.1
+    description: "Perform regular security audits of your host system and containers (Not Scored)"
+    type: manual
+    remediation: |
+      Follow your organization's security audit policies and requirements.
+    scored: false
+
+  - id: 6.2
+    description: "Monitor Docker containers usage, performance and metering (Not Scored)"
+    type: manual
+    remediation: |
+      Use a software or a container for tracking container usage, reporting performance and
+      metering.
+    scored: false
+
+  - id: 6.3
+    description: "Backup container data (Not Scored)"
+    type: manual
+    remediation: |
+      You should follow your organization's policy for data backup. You can take backup of your
+      container data volume using ' --volumes-from ' parameter as below:
+            $> docker run <Run arguments> --volumes-from $INSTANCE_ID -v [host-dir]:[container-
+            dir] <Container Image Name or ID> <Command>
+      For example,
+            docker run --volumes-from 699ee3233b96 -v /mybackup:/backup centos tar cvf
+              /backup/backup.tar /exampledatatobackup
+    scored: false
+
+  - id: 6.4
+    description: "Avoid image sprawl (Not Scored)"
+    type: manual
+    remediation: |
+      Keep the set of the images that you actually need and establish a workflow to remove old or
+      stale images from the host. Additionally, use features such as pull-by-digest to get specific
+      images from the registry.
+      Additionally, you can follow below set of steps to find out unused images on the system and
+      delete them.
+      Step 1 Make a list of all image IDs that are currently instantiated by executing below
+      command:
+      docker images --quiet | xargs docker inspect --format '{{ .Id }}: Image={{
+              .Config.Image }}'
+      Step 2: List all the images present on the system by executing below command:
+      docker images
+      Step 3: Compare the list of image IDs populated from Step 1 and Step 2 and find out images
+      that are currently not being instantiated.
+      Step 4: Decide if you want to keep the images that are not currently in use. If not delete
+      them by executing below command:
+      docker rmi $IMAGE_ID
+    scored: false
+
+  - id: 6.5
+    description: "Avoid container sprawl (Not Scored)"
+    type: manual
+    remediation: |
+      Periodically check your container inventory per host and clean up the stopped containers
+      using the below command:
+      docker container prune
+    scored: false
+
+#- id: 7
+#  description: "Docker Swarm Configuration"
+#  checks:
+#  - id: 7.1
+#    description: "Ensure swarm mode is not Enabled, if not needed (Scored)"
+#    type: manual
+#    remediation: |
+#      If swarm mode has been enabled on a system in error, run
+#      docker swarm leave
+#    scored: true
+#
+#  - id: 7.2
+#    description: "Ensure the minimum number of manager nodes have been created
+#    in a swarm (Scored)"
+#    type: manual
+#    remediation: |
+#      If an excessive number of managers is configured, the excess can be demoted as worker
+#      using the following command:
+#      docker node demote <ID>
+#      Where is the node ID value of the manager to be demoted.
+#    scored: true
+#
+#  - id: 7.3
+#    description: "Ensure swarm services are binded to a specific host interface
+#    (Scored)"
+#    audit: netstat -lt | grep -i 2377
+#    tests:
+#      test_items:
+#      - flag: "0.0.0.0"
+#        compare:
+#        set: false
+#    remediation: |
+#      Remediation of this requires re-initialization of the swarm specifying a specific interface
+#      for the --listen-addr parameter.
+#    scored: true
+#
+#  - id: 7.4
+#    description: "Ensure data exchanged between containers are encrypted on
+#    different nodes on the overlay network (Scored)"
+#    audit: docker network ls --filter driver=overlay --quiet | xargs docker network inspect --format '{{.Name}} {{ .Options }}'
+#    tests:
+#      test_items:
+#      - flag: "encrypted"
+#        set: true
+#    remediation: |
+#      Create overlay network with --opt encrypted flag.
+#    scored: true
+#
+#  - id: 7.5
+#    description: "Ensure Docker's secret management commands are used for
+#    managing secrets in a Swarm cluster (Not Scored)"
+#    type: manual
+#    remediation: |
+#      Follow docker secret documentation and use it to manage secrets effectively.
+#    scored: true
+#
+#  - id: 7.6
+#    description: "Ensure swarm manager is run in auto-lock mode (Scored)"
+#    audit: docker swarm unlock-key
+#    tests:
+#      test_items:
+#      - flag: "no unlock key is set"
+#        set: false
+#    remediation: |
+#      If you are initializing swarm, use the below command.
+#      docker swarm init --autolock
+#      If you want to set --autolock on an existing swarm manager node, use the below
+#      command.
+#      docker swarm update --autolock
+#    scored: true
+#
+#  - id: 7.7
+#    description: "Ensure swarm manager auto-lock key is rotated periodically (Not
+#    Scored)"
+#    type: manual
+#    remediation: |
+#      Run the below command to rotate the keys.
+#      docker swarm unlock-key --rotate
+#      Additionally, to facilitate audit for this recommendation, maintain key rotation records and
+#      ensure that you establish a pre-defined frequency for key rotation.
+#    scored: false
+#
+#  - id: 7.8
+#    description: "Ensure node certificates are rotated as appropriate (Not Scored)"
+#    type: manual
+#    remediation: |
+#      Run the below command to set the desired expiry time.
+#      For example,
+#      docker swarm update --cert-expiry 48h
+#    scored: false 
+#
+#  - id: 7.9
+#    description: "Ensure CA certificates are rotated as appropriate (Not Scored)"
+#    type: manual
+#    remediation: |
+#      Run the below command to rotate the certificate.
+#      docker swarm ca --rotate
+#    scored: false
+#
+#  - id: 7.10
+#    description: "Ensure management plane traffic has been separated from data
+#    plane traffic (Not Scored)"
+#    type: manual
+#    remediation: |
+#      Initialize Swarm with dedicated interfaces for management and data planes respectively.
+#      For example,
+#      docker swarm init --advertise-addr=192.168.0.1 --data-path-addr=17.1.0.3
+#    scored: false

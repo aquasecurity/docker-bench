@@ -41,14 +41,9 @@ var (
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "docker-bench",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Run: app,
+	Short: "Docker-bench is a Go application that checks whether Docker is deployed securely",
+	Long:  `This tool runs the CIS Docker Benchmark (https://www.cisecurity.org/benchmark/docker/)`,
+	Run:   app,
 }
 
 // Execute adds all child commands to the root command sets flags appropriately.

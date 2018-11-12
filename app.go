@@ -16,7 +16,6 @@ import (
 func app(cmd *cobra.Command, args []string) {
 	var version string
 	var err error
-	defaultVersion := "17.06"
 
 	// Get version of Docker benchmark to run
 	if dockerVersion != "" {
@@ -32,12 +31,7 @@ func app(cmd *cobra.Command, args []string) {
 
 	path, err := getDefinitionFilePath(version)
 	if err != nil {
-		fmt.Printf("Failed to find configuration for version %sUsing default configuration - version %s",
-			version, defaultVersion)
-		path, err = getDefinitionFilePath(defaultVersion)
-		if err != nil {
-			util.ExitWithError(err)
-		}
+		util.ExitWithError(err)
 	}
 
 	controls, err := getControls(path)

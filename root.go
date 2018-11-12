@@ -25,17 +25,16 @@ import (
 )
 
 var (
-	cfgDir        = "cfg"
-	dockerVersion = "17.06"
-
 	noResults      bool
 	noSummary      bool
 	noRemediations bool
 
-	cfgFile   string
-	checkList string
-	name      string
-	jsonFmt   bool
+	dockerVersion string
+	cfgDir        string
+	cfgFile       string
+	checkList     string
+	name          string
+	jsonFmt       bool
 )
 
 // RootCmd represents the base command when called without any subcommands
@@ -71,7 +70,7 @@ func init() {
 	RootCmd.PersistentFlags().BoolVar(&noResults, "noresults", false, "Disable printing of results section")
 	RootCmd.PersistentFlags().BoolVar(&noSummary, "nosummary", false, "Disable printing of summary section")
 	RootCmd.PersistentFlags().BoolVar(&noRemediations, "noremediations", false, "Disable printing of remediations section")
-	RootCmd.Flags().StringVarP(&dockerVersion, "version", "", "", "Specify Docker version, automatically detected if unset")
+	RootCmd.Flags().StringVarP(&dockerVersion, "version", "", "17.06", "Specify Docker version, automatically detected if unset")
 	RootCmd.Flags().StringVarP(&cfgDir, "config-dir", "D", "cfg", "directory to get benchmark definitions")
 	RootCmd.PersistentFlags().BoolVar(&jsonFmt, "json", false, "Prints the results as JSON")
 	RootCmd.PersistentFlags().StringVarP(

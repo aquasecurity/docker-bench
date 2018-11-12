@@ -756,7 +756,6 @@ groups:
           op: eq
           value: "660"
         set: true
-      test_items:
       - flag: "600"
         compare:
           op: eq

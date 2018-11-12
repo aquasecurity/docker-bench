@@ -1001,19 +1001,6 @@ groups:
       distribution mechanism of your choice.
     scored: false
 
-  - id: 4.
-    description: ""
-    #     audit: 
-    #     tests:
-    #       test_items:
-    #       - flag: ""
-    #         compare:
-    #           op: eq
-    #           value: ""
-    #         set: true
-    remediation: |
-    scored: true
-
 - id: 5
   description: "Container Runtime"
   checks:

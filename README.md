@@ -1,6 +1,6 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Docker-bench is a Go application that checks whether Docker is deployed securely by running the checks documented in the CIS Docker Benchmark.
+Docker-bench is a Go application that checks whether Docker is deployed securely by running the checks documented in the [CIS Docker Benchmark](https://www.cisecurity.org/benchmark/docker/).
 
 Tests are configured with YAML files, making this tool easy to update as test specifications evolve. 
 
@@ -14,7 +14,7 @@ The version to run tests for can also be specified manually with the `--version 
 ## Installation
 ### Installing from sources
 
-Intall [Go](https://golang.org/doc/install), then
+Install [Go](https://golang.org/doc/install), then
 clone this repository and run as follows (assuming your [$GOPATH is set](https://github.com/golang/go/wiki/GOPATH)):
 
 ```shell

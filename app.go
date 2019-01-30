@@ -81,7 +81,7 @@ func getControls(path string) (*check.Controls, error) {
 		return nil, err
 	}
 
-	controls, err := check.NewControls([]byte(data))
+	controls, err := check.NewControls([]byte(data), nil)
 	if err != nil {
 		return nil, err
 	}

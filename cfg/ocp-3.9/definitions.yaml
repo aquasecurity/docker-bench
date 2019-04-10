@@ -12,9 +12,6 @@ groups:
     tests:
       test_items:
       - flag: "/var/lib/docker"
-        compare:
-          op: has
-          value: "/var/lib/docker"
         set: true
     remediation: "For new installations, create a separate partition for /var/lib/docker
     mount point. For systems that were previously installed, use the Logical Volume Manager

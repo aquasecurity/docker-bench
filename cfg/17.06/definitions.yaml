@@ -298,11 +298,8 @@ groups:
     audit: docker info | grep -e "^Storage Driver:\s*aufs\s*$"
     tests:
       test_items:
-      - flag: "storage-driver"
-        compare:
-          op: eq
-          value: ""
-        set: true
+      - flag: "Storage Driver: aufs"
+        set: false
     remediation: |
       Do not explicitly use aufs as storage driver.
       For example, do not start Docker daemon as below:

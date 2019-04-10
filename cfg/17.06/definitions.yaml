@@ -1320,9 +1320,17 @@ groups:
     description: "Ensure the default seccomp profile is not Disabled (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:SecurityOpt={{ .HostConfig.SecurityOpt }}'
     tests:
+      bin_op: and
       test_items:
-      - flag: "seccomp:unconfined"
-        set: false
+      - flag: "SecurityOpt"
+        compare:
+          op: nothave
+          value: "seccomp:unconfined"
+      - flag: "SecurityOpt"
+        compare:
+          op: nothave
+          value: "seccomp=unconfined"
+        set: true
     remediation: |
       By default, seccomp profiles are enabled. You do not need to do anything unless you want
       to modify and use the modified seccomp profile.

@@ -1320,6 +1320,7 @@ groups:
         compare:
           op: nothave
           value: "seccomp:unconfined"
+        set: true
       - flag: "SecurityOpt"
         compare:
           op: nothave

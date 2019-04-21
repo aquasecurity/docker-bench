@@ -51,9 +51,6 @@ groups:
     tests:
       test_items:
       - flag: "/usr/bin/docker"
-        compare:
-          op: has
-          value: "/usr/bin/docker"
         set: true
     remediation: "Add a rule for Docker daemon.
         For example,
@@ -70,9 +67,6 @@ groups:
     tests:
       test_items:
       - flag: "/var/lib/docker"
-        compare:
-          op: has
-          value: "/var/lib/docker"
         set: true
     remediation: "Add a rule for /var/lib/docker directory.
     For example,
@@ -89,9 +83,6 @@ groups:
     tests:
       test_items:
       - flag: "/etc/docker"
-        compare:
-          op: has
-          value: "/etc/docker"
         set: true
     remediation: "Add a rule for /etc/docker directory.
     For example,
@@ -109,9 +100,6 @@ groups:
     tests:
       test_items:
       - flag: "docker.service"
-        compare:
-          op: has
-          value: "docker.service"
         set: true
     remediation: "If the file exists, add a rule for it.
     For example,
@@ -129,9 +117,6 @@ groups:
     tests:
       test_items:
       - flag: "docker.socket"
-        compare:
-          op: has
-          value: "docker.socket"
         set: true
     remediation: "If the file exists, add a rule for it.
     For example,
@@ -148,9 +133,6 @@ groups:
     tests:
       test_items:
       - flag: "/etc/default/docker"
-        compare:
-          op: has
-          value: "/etc/default/docker"
         set: true
     remediation: "Add a rule for /etc/default/docker file.
     For example,
@@ -167,9 +149,6 @@ groups:
     tests:
       test_items:
       - flag: "/etc/docker/daemon.json"
-        compare:
-          op: has
-          value: "/etc/docker/daemon.json"
         set: true
     remediation: "Add a rule for /etc/docker/daemon.json file.
     For example,
@@ -186,9 +165,6 @@ groups:
     tests:
       test_items:
       - flag: "/usr/bin/docker-containerd"
-        compare:
-          op: has
-          value: "/usr/bin/docker-containerd"
         set: true
     remediation: "Add a rule for /usr/bin/docker-containerd file.
     For example,
@@ -205,9 +181,6 @@ groups:
     tests:
       test_items:
       - flag: "/usr/bin/docker-runc"
-        compare:
-          op: has
-          value: "/usr/bin/docker-runc"
         set: true
     remediation: "Add a rule for /usr/bin/docker-runc file.
     For example,
@@ -226,11 +199,8 @@ groups:
     audit: "docker network ls --quiet | xargs docker network inspect --format '{{ .Name }}: {{ .Options }}'"
     tests:
       test_items:
-      - flag: "com.docker.network.bridge.enable_icc:false"
-        compare:
-          op: has
-          value: "com.docker.network.bridge.enable_icc:false"
-        set: true
+      - flag: "com.docker.network.bridge.enable_icc:true"
+        set: false
     remediation: |
       Run the docker in daemon mode and pass --icc=false as an argument.
       For Example,
@@ -639,7 +609,7 @@ groups:
   - id: 3.7
     description: "Ensure that registry certificate file ownership is set to root:root
     (Scored)"
-    audit: /bin/sh -c "if [ -d /etc/docker/certs.d ]; then stat -c %U:%G /etc/docker/certs.d/*; fi"
+    audit: stat -c %U:%G /etc/docker/certs.d/*
     tests:
       test_items:
       - flag: "root:root"
@@ -652,7 +622,7 @@ groups:
   - id: 3.8
     description: "Ensure that registry certificate file permissions are set to 444 or
     more restrictive (Scored)"
-    audit: /bin/sh -c "if [ -d /etc/docker/certs.d ]; then stat -c %a /etc/docker/certs.d/*; fi"
+    audit: stat -c %a /etc/docker/certs.d/*
     tests:
       test_items:
       - flag: "444"
@@ -724,7 +694,7 @@ groups:
   - id: 3.15
     description: "Ensure that Docker socket file ownership is set to root:docker
     (Scored)"
-    audit: /bin/sh -c "if [ -f /var/run/docker.sock ]; then stat -c %U:%G /var/run/docker.sock; fi"
+    audit: stat -c %U:%G /var/run/docker.sock
     tests:
       test_items:
       - flag: "root:docker"
@@ -741,20 +711,13 @@ groups:
   - id: 3.16
     description: "Ensure that Docker socket file permissions are set to 660 or more
     restrictive (Scored)"
-    audit: /bin/sh -c "if [ -f /var/run/docker.sock ]; then stat -c %a /var/run/docker.sock; fi"
+    audit: stat -c %a /var/run/docker.sock
     tests:
-      bin_op: or
       test_items:
-      - flag: "660"
+      - flag: ""
         compare:
-          op: eq
+          op: gte
           value: "660"
-        set: true
-      test_items:
-      - flag: "600"
-        compare:
-          op: eq
-          value: "600"
         set: true
     remediation: |
       chmod 660 /var/run/docker.sock
@@ -1043,6 +1006,7 @@ groups:
   - id: 5.4
     description: "Ensure privileged containers are not used (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Privileged={{ .HostConfig.Privileged }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "Privileged=true"
@@ -1057,6 +1021,7 @@ groups:
     description: "Ensure sensitive host system directories are not mounted on
     containers (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Volumes={{ .Mounts }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "Source:/ Destination"
@@ -1116,6 +1081,7 @@ groups:
   - id: 5.9
     description: "Ensure the host's network namespace is not shared (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:NetworkMode={{ .HostConfig.NetworkMode }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "NetworkMode=host"
@@ -1127,6 +1093,7 @@ groups:
   - id: 5.10
     description: "Ensure memory usage for container is limited (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Memory={{ .HostConfig.Memory }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "Memory"
@@ -1151,7 +1118,8 @@ groups:
 
   - id: 5.11
     description: "Ensure CPU priority is set appropriately on the container (Scored)"
-    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:CpuShares={{ .HostConfig.CpuShares }}' 
+    audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:CpuShares={{ .HostConfig.CpuShares }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "CpuShares"
@@ -1180,6 +1148,7 @@ groups:
     description: "Ensure the container's root filesystem is mounted as read only
     (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:ReadonlyRootfs={{ .HostConfig.ReadonlyRootfs }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "ReadonlyRootfs=false"
@@ -1215,6 +1184,7 @@ groups:
     description: "Ensure incoming container traffic is binded to a specific host
     interface (Scored)"
     audit: docker ps --quiet | xargs docker inspect --format '{{ .Id }}:Ports={{ .NetworkSettings.Ports }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "0.0.0.0"
@@ -1240,6 +1210,7 @@ groups:
   - id: 5.15
     description: "Ensure the host's process namespace is not shared (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:PidMode={{ .HostConfig.PidMode }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "PidMode=host"
@@ -1253,6 +1224,7 @@ groups:
   - id: 5.16
     description: "Ensure the host's IPC namespace is not shared (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:IpcMode={{ .HostConfig.IpcMode }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "IpcMode=host"
@@ -1301,6 +1273,7 @@ groups:
   - id: 5.20
     description: "Ensure the host's UTS namespace is not shared (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:UTSMode={{ .HostConfig.UTSMode }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "UTSMode=host"
@@ -1363,6 +1336,7 @@ groups:
     description: "Ensure the container is restricted from acquiring additional
     privileges (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:SecurityOpt={{ .HostConfig.SecurityOpt }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "no-new-privileges"
@@ -1396,6 +1370,7 @@ groups:
   - id: 5.28
     description: "Ensure PIDs cgroup limit is used (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:PidsLimit={{ .HostConfig.PidsLimit }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "PidsLimit"
@@ -1525,8 +1500,15 @@ groups:
     description: "Ensure data exchanged between containers are encrypted on
     different nodes on the overlay network (Scored)"
     audit: docker network ls --filter driver=overlay --quiet | xargs docker network inspect --format '{{.Name}} {{ .Options }}'
+    use_multiple_values: true
     tests:
+      bin_op: or
       test_items:
+      - flag: ""
+        compare:
+          op: eq
+          value: ""
+        set: true
       - flag: "encrypted"
         set: true
     remediation: |

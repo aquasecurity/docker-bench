@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/aquasecurity/bench-common/runner"
+	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -38,29 +40,37 @@ func TestGetDefinitionFilePath(t *testing.T) {
 	}
 }
 
-func TestGetControls(t *testing.T) {
+
+func TestRunControls(t *testing.T) {
 	var err error
 	path, err = getDefinitionFilePath(ver)
 	if err != nil {
-		t.Errorf("unexpected error: %s\n", err)
+		t.Errorf("Failed to get definition file path for version %v: %s\n",ver,  err)
 	}
+	var benchRunner *runner.BenchRunner
 
-	_, err = getControls(path)
+	yamlCfg, err := ioutil.ReadFile(path)
 	if err != nil {
-		t.Errorf("unexpected error: %s\n", err)
+		t.Errorf("Failed to read file %v : %s\n",path, err)
 	}
-}
 
-func TestRunControls(t *testing.T) {
-	control, err := getControls(path)
+	benchRunner, err = runner.New(yamlCfg).Build()
 	if err != nil {
-		t.Errorf("unexpected error: %s\n", err)
+		t.Errorf("Failed to create benchRunner Instance: %s\n", err)
+	}
+	err = benchRunner.RunTestsWithOutput(true, true, false)
+	if err != nil {
+		t.Errorf("Failed to run : %s\n", err)
 	}
 
-	// Run all checks
-	_ = runControls(control, "")
-
-	// Run only specified checks
 	checkList := "1.2, 2.1"
-	_ = runControls(control, checkList)
+	benchRunner, err = runner.New(yamlCfg).WithCheckList(checkList).Build()
+	if err != nil {
+		t.Errorf("Failed to create benchRunner Instance: %s\n", err)
+	}
+	err = benchRunner.RunTestsWithOutput(true, true, false)
+	if err != nil {
+		t.Errorf("Failed to run: %s\n", err)
+	}
 }
+

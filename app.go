@@ -54,7 +54,7 @@ func outputResults(controls *check.Controls, summary check.Summary) error {
 			// util.ExitWithError(fmt.Errorf("failed to output in JSON format: %v", err))
 			return err
 		}
-		fmt.Println(string(out))
+		util.PrintOutput(string(out), outputFile)
 	} else {
 		util.PrettyPrint(controls, summary, noRemediations, includeTestOutput)
 	}

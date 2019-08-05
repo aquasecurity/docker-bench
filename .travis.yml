@@ -12,7 +12,6 @@ notifications:
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y rpm
-  - go get -t -v ./...
 
 script:
   - GO111MODULE=on go test ./...

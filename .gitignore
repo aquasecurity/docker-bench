@@ -1,2 +1,3 @@
 *.swp
 docker-bench
+coverage.txt

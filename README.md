@@ -1,4 +1,11 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Coverage Status][cov-img]][cov]
+[![Build Status][ci-img]][ci]
+
+[cov-img]: https://codecov.io/github/aquasecurity/docker-bench/branch/master/graph/badge.svg
+[cov]: https://codecov.io/github/aquasecurity/docker-bench
+[ci-img]: https://travis-ci.com/aquasecurity/docker-bench.svg?branch=master
+[ci]: https://travis-ci.com/aquasecurity/docker-bench
 
 Docker-bench is a Go application that checks whether Docker is deployed securely by running the checks documented in the [CIS Docker Benchmark](https://www.cisecurity.org/benchmark/docker/).
 

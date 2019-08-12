@@ -8,10 +8,10 @@ groups:
   checks:
   - id: 1.1
     description: "Ensure a separate partition for containers has been created (Scored)"
-    audit: grep /var/lib/docker /etc/fstab
+    audit: mountpoint -q -- "$(docker info -f '{{ .DockerRootDir }}')" && echo ok
     tests:
       test_items:
-      - flag: "/var/lib/docker"
+      - flag: "ok"
         set: true
     remediation: "For new installations, create a separate partition for /var/lib/docker
     mount point. For systems that were previously installed, use the Logical Volume Manager

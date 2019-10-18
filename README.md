@@ -46,3 +46,6 @@ Where `<version>` is the version of docker for which the test applies.
 
 # Contributing
 We welcome PRs and issue reports. 
+
+## License
+This repository is available under [Apache License 2.0](https://github.com/aquasecurity/docker-bench/blob/master/LICENSE).

@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
+//Declaration of Variables
 var (
 	noResults      bool
 	noSummary      bool
@@ -106,3 +106,4 @@ func initConfig() {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 }
+//end

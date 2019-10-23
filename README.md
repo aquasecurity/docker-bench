@@ -18,6 +18,7 @@ docker-bench currently supports tests for multiple versions of Docker (1.13, and
 docker-bench will determine the test set to run based on the Docker version running on the host machine. 
 The version to run tests for can also be specified manually with the `--version <ver>` commandline flag.
 
+
 ## Installation
 ### Installing from sources
 
@@ -40,9 +41,11 @@ go build -o docker-bench .
 
 ```
 
+
 # Tests
 Tests are specified in definition files `cfg/<version>/definitions.yaml.
 Where `<version>` is the version of docker for which the test applies.
+
 
 # Contributing
 We welcome PRs and issue reports. 

@@ -42,7 +42,7 @@ go build -o docker-bench .
 
 # Tests
 Tests are specified in definition files `cfg/<version>/definitions.yaml.
-Where `<version>` is the version of docker for which the test applies.
+Where `<version>` It is the version of docker for which the test applies.
 
 # Contributing
 We welcome PRs and issue reports. 

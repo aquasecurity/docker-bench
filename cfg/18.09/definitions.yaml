@@ -1,13 +1,14 @@
 ---
 controls:
-id: " "
+id: "18.09"
 description: "CIS Docker Community Edition Benchmark"
 groups:
 - id: 1
   description: "Host Configuration"
   checks:
-  - id: 1.1
-    description: "General Configuration"
+- id: 1.1
+  description: "General Configuration"
+  checks:
   - id: 1.1.1
     description: "Ensure the container host has been Hardened (Not Scored)"  
     type: manual 
@@ -30,8 +31,9 @@ groups:
       your software is updated as required.
     scored: false
     
-  - id: 1.2
-    description: "Linux Hosts Specific Configuration"
+- id: 1.2
+  description: "Linux Hosts Specific Configuration"
+  checks:
   - id: 1.2.1
     description: "Ensure a separate partition for containers has been created (Scored)"
     audit: "grep /var/lib/docker /proc/mounts"
@@ -59,7 +61,7 @@ groups:
     audit: "auditctl -l | grep /usr/bin/dockerd"
     tests:
       test_items:
-      - flag: "/usr/bin/docker"
+      - flag: "/usr/bin/dockerd"
         set: true
     remediation: |
       You should add rules for the Docker daemon. For example: 
@@ -813,7 +815,7 @@ groups:
     scored: true
   - id: 3.20
     description: "Ensure that the /etc/sysconfig/docker file ownership is set to root:root (Scored)"
-    audit: /bin/sh -c "if [ -f /etc/sysconfig/docker ]; then stat -c %U:%G /etc/sysconfig/docker; fi"
+    audit: "/bin/sh -c \"if [ -f /etc/sysconfig/docker ]; then stat -c %U:%G /etc/sysconfig/docker; fi\""
     tests:
       test_items:
       - flag: "root:root"
@@ -886,7 +888,7 @@ groups:
   checks:
   - id: 4.1
     description: "Ensure that a user for the container has been created (Scored)"
-    audit: "docker ps --quiet | xargs --max-args=1 -I{} docker exec {} cat /proc/1/status | grep '^Uid:' | awk '{print $3}'"
+    audit: "docker ps --quiet | xargs --max-args=1 -I{} docker exec {} cat /proc/1/status | grep '^Uid:' | awk '{print \"User=\"$3}'"
     use_multiple_values: true
     tests:
       bin_op: and
@@ -1234,7 +1236,7 @@ groups:
          give you the CPU share value based on the system. Even if there are no CPU shares
          configured using the -c or --cpu-shares argument in the docker run command,
          this file will have a value of 1024.
-      If you set one container’s CPU shares to 512 it will receive half of the CPU time compared to
+      If you set one containerâ€™s CPU shares to 512 it will receive half of the CPU time compared to
       the other containers. So if you take 1024 as 100% you can then derive the number that you
       should set for respective CPU shares. For example, use 512 if you want to set it to 50% and
       256 if you want to set it 25%.
@@ -1668,10 +1670,12 @@ groups:
 - id: 8
   description: "Docker Enterprise Configuration"
   checks:
-  - id: 8.1
-    description: "Universal Control Plane Configuration"
+- id: 8.1
+  description: "Universal Control Plane Configuration"
+  checks:
   - id: 8.1.1
     description: "Configure the LDAP authentication service (Scored)"  
+    type: "manual"
     audit: "CURRENT_CONFIG_NAME=$(docker service inspect --format '{{ range $config := .Spec.TaskTemplate.ContainerSpec.Configs }}{{ $config.ConfigName }}{{ \"\\n\" }}{{ end }}' ucp-agent | grep 'com.docker.ucp.config-') docker config inspect --format '{{ printf \"%s\" .Spec.Data }}' $CURRENT_CONFIG_NAME | grep backend"
     tests:
       test_items:
@@ -1779,7 +1783,7 @@ groups:
       config.toml https://[ucp_url]/api/ucp/config-toml
     scored: true
   - id: 8.1.7
-    description: "Set the "Lifetime Minutes" and "Renewal Threshold Minutes" values to '15' or lower and '0' respectively (Scored)"  
+    description: "Set the \"Lifetime Minutes\" and \"Renewal Threshold Minutes\" values to '15' or lower and '0' respectively (Scored)"  
     type: "manual"
     remediation: |
       As a Docker Enterprise Administrator, execute the following commands from a machine
@@ -1803,8 +1807,9 @@ groups:
       $ curl -sk -H "Authorization: Bearer $AUTHTOKEN" --upload-file ucp-
       config.toml https://[ucp_url]/api/ucp/config-toml
     scored: true
-  - id: 8.2
-    description: "Docker Trusted Registry Configuration"
+- id: 8.2
+  description: "Docker Trusted Registry Configuration"
+  checks:
   - id: 8.2.1
     description: "Enable image vulnerability scanning (Scored)"  
     type: "manual"

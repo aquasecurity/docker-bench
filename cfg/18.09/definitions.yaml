@@ -103,7 +103,6 @@ groups:
       service auditd restart"
     scored: true
 
-    # Revisit this check
   - id: 1.2.6
     description: "Ensure auditing is configured for Docker files and directories -
     docker.service (Scored)"
@@ -120,7 +119,6 @@ groups:
       service auditd restart
     scored: true
 
-    # Revisit this check
   - id: 1.2.7
     description: "Ensure auditing is configured for Docker files and directories -
     docker.socket (Scored)"
@@ -963,7 +961,6 @@ groups:
       re-built, containers should be re-started making use of the updated images.
     scored: false
 
-    #### Come back here
   - id: 4.5
     description: "Ensure Content trust for Docker is Enabled (Scored)"
     audit: echo $DOCKER_CONTENT_TRUST
@@ -1297,7 +1294,6 @@ groups:
       accept incoming connection only from 10.2.3.4 external interface.
     scored: true
 
-    # This test request requires multi-test capabilities
   - id: 5.14
     description: "Ensure that the 'on-failure' container restart policy is set to '5' (Scored)"
     type: manual
@@ -1406,7 +1402,6 @@ groups:
       to modify and use the modified seccomp profile.
     scored: true
 
-    # Revisit
   - id: 5.22
     description: "Ensure that docker exec commands are not used with the privileged option
     (Scored)"
@@ -1415,7 +1410,6 @@ groups:
       You should not use the --privileged option in docker exec commands.
     scored: true
 
-    # Revisit
   - id: 5.23
     description: "Ensure that docker exec commands are not used with the user=root option (Not Scored)"
     type: manual
@@ -1423,7 +1417,6 @@ groups:
       You should not use the --user=root option in docker exec commands.
     scored: true
 
-    # Revisit: issue with representing empty parameter
   - id: 5.24
     description: "Ensure cgroup usage is confirmed (Scored)"
     type: manual
@@ -1445,7 +1438,6 @@ groups:
       You should start your container with the options below: 
       docker run --rm -it --security-opt=no-new-privileges ubuntu bash    scored: true
 
-    # Revisit
   - id: 5.26
     description: "Ensure that container health is checked at runtime (Scored)"
     type: manual
@@ -1498,7 +1490,6 @@ groups:
       containers should be run in this network.
     scored: false
 
-    # Revisit: issue representing null value
   - id: 5.30
     description: "Ensure that the host's user namespaces is not shared (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:UsernsMode={{ .HostConfig.UsernsMode }}'

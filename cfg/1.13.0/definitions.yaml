@@ -1,6 +1,6 @@
 ---
 controls:
-id: " "
+id: "1.13.0"
 description: "CIS Docker Community Edition Benchmark"
 groups:
 - id: 1
@@ -51,9 +51,6 @@ groups:
     tests:
       test_items:
       - flag: "/usr/bin/docker"
-        compare:
-          op: has
-          value: "/usr/bin/docker"
         set: true
     remediation: "Add a rule for Docker daemon.
         For example,
@@ -70,9 +67,6 @@ groups:
     tests:
       test_items:
       - flag: "/var/lib/docker"
-        compare:
-          op: has
-          value: "/var/lib/docker"
         set: true
     remediation: "Add a rule for /var/lib/docker directory.
     For example,
@@ -89,9 +83,6 @@ groups:
     tests:
       test_items:
       - flag: "/etc/docker"
-        compare:
-          op: has
-          value: "/etc/docker"
         set: true
     remediation: "Add a rule for /etc/docker directory.
     For example,
@@ -101,17 +92,13 @@ groups:
     service auditd restart"
     scored: true
 
-    # Revisit this check
   - id: 1.8
     description: "Ensure auditing is configured for Docker files and directories -
     docker.service (Scored)"
-    audit: "auditctl -l | grep docker.service"
+    audit: "systemctl show -p FragmentPath docker.service | awk -F \"=\" '{print $2}' |xargs -I % test -f % && auditctl -l | grep `systemctl show -p FragmentPath docker.service | awk -F \"=\" '{print $2}'`"
     tests:
       test_items:
       - flag: "docker.service"
-        compare:
-          op: has
-          value: "docker.service"
         set: true
     remediation: "If the file exists, add a rule for it.
     For example,
@@ -121,17 +108,13 @@ groups:
     service auditd restart"
     scored: true
 
-    # Revisit this check
   - id: 1.9
     description: "Ensure auditing is configured for Docker files and directories -
     docker.socket (Scored)"
-    audit: "auditctl -l | grep docker.socket"
+    audit: "systemctl show -p FragmentPath docker.socket | awk -F \"=\" '{print $2}' |xargs -I % test -f % && auditctl -l | grep `systemctl show -p FragmentPath docker.socket | awk -F \"=\" '{print $2}'`"
     tests:
       test_items:
       - flag: "docker.socket"
-        compare:
-          op: has
-          value: "docker.socket"
         set: true
     remediation: "If the file exists, add a rule for it.
     For example,
@@ -148,9 +131,6 @@ groups:
     tests:
       test_items:
       - flag: "/etc/default/docker"
-        compare:
-          op: has
-          value: "/etc/default/docker"
         set: true
     remediation: "Add a rule for /etc/default/docker file.
     For example,
@@ -167,9 +147,6 @@ groups:
     tests:
       test_items:
       - flag: "/etc/docker/daemon.json"
-        compare:
-          op: has
-          value: "/etc/docker/daemon.json"
         set: true
     remediation: "Add a rule for /etc/docker/daemon.json file.
     For example,
@@ -186,9 +163,6 @@ groups:
     tests:
       test_items:
       - flag: "/usr/bin/docker-containerd"
-        compare:
-          op: has
-          value: "/usr/bin/docker-containerd"
         set: true
     remediation: "Add a rule for /usr/bin/docker-containerd file.
     For example,
@@ -205,9 +179,6 @@ groups:
     tests:
       test_items:
       - flag: "/usr/bin/docker-runc"
-        compare:
-          op: has
-          value: "/usr/bin/docker-runc"
         set: true
     remediation: "Add a rule for /usr/bin/docker-runc file.
     For example,
@@ -226,9 +197,6 @@ groups:
     tests:
       test_items:
       - flag: "com.docker.network.bridge.enable_icc:false"
-        compare:
-          op: has
-          value: "com.docker.network.bridge.enable_icc:false"
         set: true
     remediation: |
       Run the docker in daemon mode and pass --icc=false as an argument.
@@ -665,9 +633,6 @@ groups:
     tests:
       test_items:
       - flag: "root:root"
-        compare:
-          op: eq
-          value: ""
         set: true
     remediation: |
       chown root:root /etc/docker/certs.d/<registry-name>/*
@@ -877,6 +842,7 @@ groups:
   - id: 4.1
     description: "Ensure a user for the container has been created (Scored)"
     audit: "docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}: User={{ .Config.User }}'"
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "root"
@@ -938,7 +904,6 @@ groups:
       instructions for images that you know are used as base images frequently.
     scored: false
 
-    #### Come back here
   - id: 4.5
     description: "Ensure Content trust for Docker is Enabled (Scored)"
     audit: echo $DOCKER_CONTENT_TRUST
@@ -1056,6 +1021,7 @@ groups:
   - id: 5.4
     description: "Ensure privileged containers are not used (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Privileged={{ .HostConfig.Privileged }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "Privileged=true"
@@ -1070,6 +1036,7 @@ groups:
     description: "Ensure sensitive host system directories are not mounted on
     containers (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Volumes={{ .Mounts }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "Source:/ Destination"
@@ -1129,6 +1096,7 @@ groups:
   - id: 5.9
     description: "Ensure the host's network namespace is not shared (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:NetworkMode={{ .HostConfig.NetworkMode }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "NetworkMode=host"
@@ -1140,6 +1108,7 @@ groups:
   - id: 5.10
     description: "Ensure memory usage for container is limited (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Memory={{ .HostConfig.Memory }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "Memory"
@@ -1165,6 +1134,7 @@ groups:
   - id: 5.11
     description: "Ensure CPU priority is set appropriately on the container (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:CpuShares={{ .HostConfig.CpuShares }}' 
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "CpuShares"
@@ -1193,6 +1163,7 @@ groups:
     description: "Ensure the container's root filesystem is mounted as read only
     (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:ReadonlyRootfs={{ .HostConfig.ReadonlyRootfs }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "ReadonlyRootfs=false"
@@ -1228,6 +1199,7 @@ groups:
     description: "Ensure incoming container traffic is binded to a specific host
     interface (Scored)"
     audit: docker ps --quiet | xargs docker inspect --format '{{ .Id }}:Ports={{ .NetworkSettings.Ports }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "0.0.0.0"
@@ -1240,10 +1212,28 @@ groups:
       accept incoming connection only from 10.2.3.4 external interface.
     scored: true
 
-    # This test request requires multi-test capabilities
   - id: 5.14
     description: "Ensure 'on-failure' container restart policy is set to '5' (Scored)"
-    type: manual
+    audit: "docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}: RestartPolicyName={{ .HostConfig.RestartPolicy.Name }} MaximumRetryCount={{ .HostConfig.RestartPolicy.MaximumRetryCount }}'"
+    use_multiple_values: true
+    tests:
+      bin_op: and
+      test_items:
+      - flag: "RestartPolicyName"
+        compare:
+          op: noteq
+          value: "always"
+        set: true
+      - flag: "RestartPolicyName"
+        compare:
+          op: noteq
+          value: ""
+        set: true
+       - flag: "RestartPolicyName"
+        compare:
+          op: eq
+          value: "no"
+        set: true
     remediation: |
       If a container is desired to be restarted of its own, then, for example, you could start the
       container as below:
@@ -1253,6 +1243,7 @@ groups:
   - id: 5.15
     description: "Ensure the host's process namespace is not shared (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:PidMode={{ .HostConfig.PidMode }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "PidMode=host"
@@ -1266,6 +1257,7 @@ groups:
   - id: 5.16
     description: "Ensure the host's IPC namespace is not shared (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:IpcMode={{ .HostConfig.IpcMode }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "IpcMode=host"
@@ -1314,6 +1306,7 @@ groups:
   - id: 5.20
     description: "Ensure the host's UTS namespace is not shared (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:UTSMode={{ .HostConfig.UTSMode }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "UTSMode=host"
@@ -1327,6 +1320,7 @@ groups:
   - id: 5.21
     description: "Ensure the default seccomp profile is not Disabled (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:SecurityOpt={{ .HostConfig.SecurityOpt }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "seccomp:unconfined"
@@ -1336,25 +1330,36 @@ groups:
       to modify and use the modified seccomp profile.
     scored: true
 
-    # Revisit
   - id: 5.22
     description: "Ensure docker exec commands are not used with privileged option
     (Scored)"
-    type: manual
+    audit: "ausearch -k docker | grep exec | grep privileged"
+    tests:
+      test_items:
+      - flag: ""
+        compare:
+          op: eq
+          value: ""
+        set: true
     remediation: |
       Do not use --privileged option in docker exec command.
     scored: true
 
-    # Revisit
   - id: 5.23
     description: "Ensure docker exec commands are not used with user option
     (Scored)"
-    type: manual
+    audit: "ausearch -k docker | grep exec | grep user"
+    tests:
+      test_items:
+      - flag: ""
+        compare:
+          op: eq
+          value: ""
+        set: true
     remediation: |
       Do not use --user option in docker exec command.
     scored: true
 
-    # Revisit: issue with representing empty parameter
   - id: 5.24
     description: "Ensure cgroup usage is confirmed (Scored)"
     type: manual
@@ -1366,6 +1371,7 @@ groups:
     description: "Ensure the container is restricted from acquiring additional
     privileges (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:SecurityOpt={{ .HostConfig.SecurityOpt }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "no-new-privileges"
@@ -1375,7 +1381,6 @@ groups:
       docker run --rm -it --security-opt=no-new-privileges ubuntu bash
     scored: true
 
-    # Revisit
   - id: 5.26
     description: "Ensure container health is checked at runtime (Scored)"
     type: manual
@@ -1399,6 +1404,7 @@ groups:
   - id: 5.28
     description: "Ensure PIDs cgroup limit is used (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:PidsLimit={{ .HostConfig.PidsLimit }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "PidsLimit"
@@ -1427,14 +1433,15 @@ groups:
       the defined network.
     scored: false
 
-    # Revisit: issue representing null value
   - id: 5.30
     description: "Ensure the host's user namespaces is not shared (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:UsernsMode={{ .HostConfig.UsernsMode }}'
-    type: manual
     tests:
       test_items:
-      - flag: "UsernsMode="
+      - flag: "UsernsMode"
+        compare:
+          op: eq
+          value: ""
         set: true
     remediation: |
       Do not share user namespaces between host and containers.
@@ -1556,6 +1563,7 @@ groups:
     description: "Ensure data exchanged between containers are encrypted on
     different nodes on the overlay network (Scored)"
     audit: docker network ls --filter driver=overlay --quiet | xargs docker network inspect --format '{{.Name}} {{ .Options }}'
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "encrypted"

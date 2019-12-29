@@ -1,0 +1,28 @@
+env:
+  - GO111MODULE=on
+  - LINUXBENCH_CFG=/etc/docker-bench/cfg
+builds:
+  - main: .
+    binary: docker-bench
+    goos:
+      - linux
+    goarch:
+      - amd64
+    ldflags:
+     - "-X github.com/aquasecurity/docker-bench/root.cfgDir={{.Env.LINUXBENCH_CFG}}"
+# Archive customization
+archives:
+  - id: compress
+    format: tar.gz
+    files:
+      - "cfg/**/*"
+nfpms:
+  - vendor: Aqua Security
+    description: "Checks whether Docker is deployed according to security best practices as defined in the CIS Docker Benchmark"
+    license: Apache-2.0
+    homepage: https://github.com/aquasecurity/docker-bench
+    files:
+      "cfg/**/*": "/etc/docker-bench/cfg"
+    formats:
+      - deb
+      - rpm

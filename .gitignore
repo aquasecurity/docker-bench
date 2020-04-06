@@ -1,3 +1,4 @@
 *.swp
 docker-bench
 coverage.txt
+dist

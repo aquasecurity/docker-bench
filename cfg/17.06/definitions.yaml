@@ -1211,7 +1211,7 @@ groups:
           op: noteq
           value: ""
         set: true
-       - flag: "RestartPolicyName"
+      - flag: "RestartPolicyName"
         compare:
           op: eq
           value: "no"

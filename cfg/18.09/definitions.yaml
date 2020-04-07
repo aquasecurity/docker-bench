@@ -106,7 +106,7 @@ groups:
   - id: 1.2.6
     description: "Ensure auditing is configured for Docker files and directories -
     docker.service (Scored)"
-    audit: "auditctl -l | grep docker.service"
+    audit: "systemctl show -p FragmentPath docker.service | awk -F \"=\" '{print $2}' |xargs -I % test -f % && auditctl -l | grep `systemctl show -p FragmentPath docker.service | awk -F \"=\" '{print $2}'`"
     tests:
       test_items:
       - flag: "docker.service"
@@ -122,7 +122,7 @@ groups:
   - id: 1.2.7
     description: "Ensure auditing is configured for Docker files and directories -
     docker.socket (Scored)"
-    audit: "auditctl -l | grep docker.socket"
+    audit: "systemctl show -p FragmentPath docker.socket | awk -F \"=\" '{print $2}' |xargs -I % test -f % && auditctl -l | grep `systemctl show -p FragmentPath docker.socket | awk -F \"=\" '{print $2}'`"
     tests:
       test_items:
       - flag: "docker.socket"
@@ -1233,7 +1233,7 @@ groups:
          give you the CPU share value based on the system. Even if there are no CPU shares
          configured using the -c or --cpu-shares argument in the docker run command,
          this file will have a value of 1024.
-      If you set one containerâ€™s CPU shares to 512 it will receive half of the CPU time compared to
+      If you set one container’s CPU shares to 512 it will receive half of the CPU time compared to
       the other containers. So if you take 1024 as 100% you can then derive the number that you
       should set for respective CPU shares. For example, use 512 if you want to set it to 50% and
       256 if you want to set it 25%.
@@ -1296,7 +1296,26 @@ groups:
 
   - id: 5.14
     description: "Ensure that the 'on-failure' container restart policy is set to '5' (Scored)"
-    type: manual
+    audit: "docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}: RestartPolicyName={{ .HostConfig.RestartPolicy.Name }} MaximumRetryCount={{ .HostConfig.RestartPolicy.MaximumRetryCount }}'"
+    use_multiple_values: true
+    tests:
+      bin_op: and
+      test_items:
+      - flag: "RestartPolicyName"
+        compare:
+          op: noteq
+          value: "always"
+        set: true
+      - flag: "RestartPolicyName"
+        compare:
+          op: noteq
+          value: ""
+        set: true
+       - flag: "RestartPolicyName"
+        compare:
+          op: eq
+          value: "no"
+        set: true
     remediation: |
       If you wish a container to be automatically restarted, a sample command is as below:
       docker run --detach --restart=on-failure:5 nginx
@@ -1405,14 +1424,28 @@ groups:
   - id: 5.22
     description: "Ensure that docker exec commands are not used with the privileged option
     (Scored)"
-    type: manual
+    audit: "ausearch -k docker | grep exec | grep privileged"
+    tests:
+      test_items:
+      - flag: ""
+        compare:
+          op: eq
+          value: ""
+        set: true
     remediation: |
       You should not use the --privileged option in docker exec commands.
     scored: true
 
   - id: 5.23
     description: "Ensure that docker exec commands are not used with the user=root option (Not Scored)"
-    type: manual
+    audit: "ausearch -k docker | grep exec | grep user"
+    tests:
+      test_items:
+      - flag: ""
+        compare:
+          op: eq
+          value: ""
+        set: true
     remediation: |
       You should not use the --user=root option in docker exec commands.
     scored: true
@@ -1495,7 +1528,10 @@ groups:
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:UsernsMode={{ .HostConfig.UsernsMode }}'
     tests:
       test_items:
-      - flag: "UsernsMode="
+      - flag: "UsernsMode"
+        compare:
+          op: eq
+          value: ""
         set: true
     remediation: |
       You should not share user namespaces between host and containers.

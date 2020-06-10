@@ -208,7 +208,7 @@ groups:
       approach of segmenting networks should be adopted instead.
     scored: true
 
-  - id: 2.2
+  - id: 2.2.a
     description: "Set the logging level (Scored)"
     audit: "ps -ef | grep docker"
     tests:
@@ -222,9 +222,29 @@ groups:
           value: "info"
         set: true
     remediation: |
-      ps -ef | grep docker
+      Ensure that the Docker daemon configuration file has the following configuration included
+      "log-level": "info"
+      Alternatively, run the Docker daemon as below:
+      dockerd --log-level="info"
     scored: true
-
+  
+  - id: 2.2.b
+    description: "Set the logging level (Scored)"
+    audit: "grep log-level /etc/docker/daemon.json"
+    tests:
+      test_items:
+      - flag: '"log-level"'
+        compare:
+          op: eq
+          value: "info"
+        set: true
+    remediation: |
+      Ensure that the Docker daemon configuration file has the following configuration included
+      "log-level": "info"
+      Alternatively, run the Docker daemon as below:
+      dockerd --log-level="info"
+    scored: true
+    
   - id: 2.3
     description: "Allow Docker to make changes to iptables (Scored)"
     audit: "ps -ef | grep dockerd"
@@ -270,10 +290,11 @@ groups:
       dockerd --storage-driver aufs
     scored: true
 
-  - id: 2.6
+  - id: 2.6.a
     description: "Configure TLS authentication for Docker daemon (Scored)"
-    audit: ps -ef | grep dockerd
+    audit: "ps -ef | grep dockerd"
     tests:
+      bin_op: and
       test_items:
       - flag: "--tlsverify"
         set: true
@@ -282,6 +303,36 @@ groups:
       - flag: "--tlscert"
         set: true
       - flag: "--tlskey"
+        set: true
+    remediation: |
+      Follow the steps mentioned in the Docker documentation or other references.
+    scored: true
+    
+  - id: 2.6.b
+    description: "Configure TLS authentication for Docker daemon (Scored)"
+    audit: 'grep tls /etc/docker/daemon.json | tr -d ","'
+    tests:
+      bin_op: and
+      test_items:
+      - flag: '"tlsverify"'
+        compare:
+          op: eq
+          value: true
+        set: true
+      - flag: '"tlscacert"'
+        compare:
+          op: noteq
+          value: '""'
+        set: true
+      - flag: '"tlscert"'
+        compare:
+          op: noteq
+          value: '""'
+        set: true
+      - flag: '"tlskey"'
+        compare:
+          op: noteq
+          value: '""'
         set: true
     remediation: |
       Follow the steps mentioned in the Docker documentation or other references.
@@ -324,7 +375,7 @@ groups:
       dockerd --userns-remap=default
     scored: true
 
-  - id: 2.9
+  - id: 2.9.a
     description: "Confirm default cgroup usage (Scored)"
     audit: ps -ef | grep dockerd
     tests:
@@ -343,8 +394,31 @@ groups:
       For Example,
       dockerd --cgroup-parent=/foobar
     scored: true
-
-  - id: 2.10
+  
+  - id: 2.9.b
+    description: "Confirm default cgroup usage (Scored)"
+    audit: "grep cgroup-parent /etc/docker/daemon.json"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: ""
+        compare:
+          op: eq
+          value: ""
+        set: false
+      - flag: '"cgroup-parent"'
+        compare:
+          op: nothave
+          value: "/docker"
+        set: true
+    remediation: |
+      The default setting is good enough and can be left as-is. If you want to specifically set a non-
+      default cgroup, pass --cgroup-parent parameter to the docker daemon when starting it.
+      For Example,
+      dockerd --cgroup-parent=/foobar
+    scored: true
+    
+  - id: 2.10.a
     description: "Do not change base device size until needed (Scored)"
     audit: ps -ef | grep dockerd
     tests:
@@ -354,8 +428,22 @@ groups:
     remediation: |
       Do not set --storage-opt dm.basesize until needed.
     scored: true
-
-  - id: 2.11
+  
+  - id: 2.10.b
+    description: "Do not change base device size until needed (Scored)"
+    audit: "grep storage-opt /etc/docker/daemon.json"
+    tests:
+      test_items:
+      - flag: '"storage-opt"'
+        compare:
+          op: eq
+          value: ""
+        set: true
+    remediation: |
+      Do not set --storage-opt dm.basesize until needed.
+    scored: true
+    
+  - id: 2.11.a
     description: "Use authorization plugin (Scored)"
     audit: ps -ef | grep dockerd
     tests:
@@ -369,6 +457,23 @@ groups:
       dockerd --authorization-plugin=<PLUGIN_ID>
     scored: true
 
+  - id: 2.11.b
+    description: "Use authorization plugin (Scored)"
+    audit: 'grep authorization-plugin /etc/docker/daemon.json | tr -d ","'
+    tests:
+      test_items:
+      - flag: '"authorization-plugins"'
+        compare:
+          op: noteq
+          value: "[]"
+        set: true
+    remediation: |
+      Step 1: Install/Create an authorization plugin.
+      Step 2: Configure the authorization policy as desired.
+      Step 3: Start the docker daemon as below:
+      dockerd --authorization-plugin=<PLUGIN_ID>
+    scored: true
+    
   - id: 2.12
     description: "Configure centralized and remote logging (Scored)"
     audit: ps -ef | grep dockerd
@@ -396,7 +501,7 @@ groups:
       dockerd --disable-legacy-registry
     scored: true
 
-  - id: 2.14
+  - id: 2.14.a
     description: "Enable live restore (Scored)"
     audit: ps -ef | grep dockerd
     tests:
@@ -409,6 +514,22 @@ groups:
       dockerd --live-restore
     scored: true
 
+  - id: 2.14.b
+    description: "Enable live restore (Scored)"
+    audit: 'grep live-restore /etc/docker/daemon.json | tr -d ","'
+    tests:
+      test_items:
+      - flag: '"live-restore"'
+        compare:
+          op: eq
+          value: "true"
+        set: true
+    remediation: |
+      Run the docker in daemon mode and pass --live-restore as an argument.
+      For Example,
+      dockerd --live-restore
+    scored: true
+    
   - id: 2.15
     description: "Do not enable swarm mode, if not needed (Scored)"
     audit: docker info --format '{{ .Swarm }}'
@@ -438,9 +559,9 @@ groups:
       for the --listen-addr parameter.
     scored: true
 
-  - id: 2.18
+  - id: 2.18.a
     description: "Disable Userland Proxy (Scored)"
-    audit: ps -ef | grep dockerd
+    audit: "ps -ef | grep dockerd"
     tests:
       test_items:
       - flag: "--userland-proxy"
@@ -452,7 +573,22 @@ groups:
       Run the Docker daemon as below:
       dockerd --userland-proxy=false
     scored: true
-
+  
+  - id: 2.18.b
+    description: "Disable Userland Proxy (Scored)"
+    audit: 'grep userland-proxy /etc/docker/daemon.json | tr -d ","'
+    tests:
+      test_items:
+      - flag: '"userland-proxy"'
+        compare:
+          op: eq
+          value: "false"
+        set: true
+    remediation: |
+      Run the Docker daemon as below:
+      dockerd --userland-proxy=false
+    scored: true
+    
   - id: 2.19
     description: "Encrypt data exchanged between containers on different nodes
     on the overlay network (Scored)"
@@ -1229,7 +1365,7 @@ groups:
           op: noteq
           value: ""
         set: true
-       - flag: "RestartPolicyName"
+      - flag: "RestartPolicyName"
         compare:
           op: eq
           value: "no"
@@ -1367,7 +1503,7 @@ groups:
       Do not use --cgroup-parent option in docker run command unless needed.
     scored: true
 
-  - id: 5.25
+  - id: 5.25.a
     description: "Ensure the container is restricted from acquiring additional
     privileges (Scored)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:SecurityOpt={{ .HostConfig.SecurityOpt }}'
@@ -1380,7 +1516,23 @@ groups:
       For example, you should start your container as below:
       docker run --rm -it --security-opt=no-new-privileges ubuntu bash
     scored: true
-
+  
+  - id: 5.25.b
+    description: "Ensure the container is restricted from acquiring additional
+    privileges (Scored)"
+    audit: 'grep no-new-privileges /etc/docker/daemon.json | tr -d ","'
+    tests:
+      test_items:
+      - flag: '"no-new-privileges"'
+        compare:
+          op: eq
+          value: "true"
+        set: true
+    remediation: |
+      For example, you should start your container as below:
+      docker run --rm -it --security-opt=no-new-privileges ubuntu bash
+    scored: true
+    
   - id: 5.26
     description: "Ensure container health is checked at runtime (Scored)"
     type: manual

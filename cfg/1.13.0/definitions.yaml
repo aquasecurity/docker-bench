@@ -526,12 +526,12 @@ groups:
   - id: 3.2
     description: "Ensure that docker.service file permissions are set to 644 or more
     restrictive (Scored)"
-    audit: systemctl show -p FragmentPath docker.service | cut -d= -f2 | xargs stat -c %a
+    audit: systemctl show -p FragmentPath docker.service | cut -d= -f2 | xargs stat -c "permissions=%a"
     tests:
       test_items:
-      - flag: "644"
+      - flag: "permissions"
         compare:
-          op: eq
+          op: bitmask
           value: "644"
         set: true
     remediation: |
@@ -566,12 +566,12 @@ groups:
   - id: 3.4
     description: "Ensure that docker.socket file permissions are set to 644 or more
     restrictive (Scored)"
-    audit: systemctl show -p FragmentPath docker.socket | cut -d= -f2 | xargs stat -c %a
+    audit: systemctl show -p FragmentPath docker.socket | cut -d= -f2 | xargs stat -c "permissions=%a"
     tests:
       test_items:
-      - flag: "644"
+      - flag: "permissions"
         compare:
-          op: eq
+          op: bitmask
           value: "644"
         set: true
     remediation: |
@@ -602,24 +602,13 @@ groups:
   - id: 3.6
     description: "Ensure that /etc/docker directory permissions are set to 755 or more
     restrictive (Scored)"
-    audit: stat -c %a /etc/docker
+    audit: stat -c "permissions=%a" /etc/docker
     tests:
-      bin_op: or
       test_items:
-      - flag: "755"
+      - flag: "permissions"
         compare:
-          op: eq
+          op: bitmask
           value: "755"
-        set: true
-      - flag: "750"
-        compare:
-          op: eq
-          value: "750"
-        set: true
-      - flag: "700"
-        compare:
-          op: eq
-          value: "700"
         set: true
     remediation: |
       chmod 755 /etc/docker
@@ -642,12 +631,12 @@ groups:
   - id: 3.8
     description: "Ensure that registry certificate file permissions are set to 444 or
     more restrictive (Scored)"
-    audit: /bin/sh -c "if [ -d /etc/docker/certs.d ]; then stat -c %a /etc/docker/certs.d/*; fi"
+    audit: /bin/sh -c "if [ -d /etc/docker/certs.d ]; then stat -c "permissions=%a" /etc/docker/certs.d/*; fi"
     tests:
       test_items:
-      - flag: "444"
+      - flag: "permissions"
         compare:
-          op: eq
+          op: bitmask
           value: "444"
         set: true
     remediation: |
@@ -731,20 +720,13 @@ groups:
   - id: 3.16
     description: "Ensure that Docker socket file permissions are set to 660 or more
     restrictive (Scored)"
-    audit: /bin/sh -c "if [ -f /var/run/docker.sock ]; then stat -c %a /var/run/docker.sock; fi"
+    audit: /bin/sh -c "if [ -f /var/run/docker.sock ]; then stat -c "permissions=%a" /var/run/docker.sock; fi"
     tests:
-      bin_op: or
       test_items:
-      - flag: "660"
+      - flag: "permissions"
         compare:
-          op: eq
+          op: bitmask
           value: "660"
-        set: true
-      test_items:
-      - flag: "600"
-        compare:
-          op: eq
-          value: "600"
         set: true
     remediation: |
       chmod 660 /var/run/docker.sock
@@ -769,24 +751,14 @@ groups:
   - id: 3.18
     description: "Ensure that daemon.json file permissions are set to 644 or more
     restrictive (Scored)"
-    audit: /bin/sh -c "if [ -f /etc/docker/daemon.json ]; then stat -c %a /etc/docker/daemon.json; fi"
+    audit: /bin/sh -c "if [ -f /etc/docker/daemon.json ]; then stat -c "permissions=%a" /etc/docker/daemon.json; fi"
     tests:
       bin_op: or
       test_items:
-      - flag: "644"
+      - flag: "permissions"
         compare:
-          op: eq
+          op: bitmask
           value: "644"
-        set: true
-      - flag: "640"
-        compare:
-          op: eq
-          value: "640"
-        set: true
-      - flag: "600"
-        compare:
-          op: eq
-          value: "600"
         set: true
     remediation: |
       chown root:root /etc/default/docker
@@ -812,24 +784,13 @@ groups:
   - id: 3.20
     description: "Ensure that /etc/default/docker file permissions are set to 644 or
     more restrictive (Scored)"
-    audit: /bin/sh -c "if [ -f /etc/default/docker ]; then stat -c %a /etc/default/docker; fi"
+    audit: /bin/sh -c "if [ -f /etc/default/docker ]; then stat -c "permissions=%a" /etc/default/docker; fi"
     tests:
-      bin_op: or
       test_items:
-      - flag: "644"
+      - flag: "permissions"
         compare:
-          op: eq
+          op: bitmask
           value: "644"
-        set: true
-      - flag: "640"
-        compare:
-          op: eq
-          value: "640"
-        set: true
-      - flag: "600"
-        compare:
-          op: eq
-          value: "600"
         set: true
     remediation: |
       chmod 644 /etc/default/docker
@@ -1229,7 +1190,7 @@ groups:
           op: noteq
           value: ""
         set: true
-       - flag: "RestartPolicyName"
+      - flag: "RestartPolicyName"
         compare:
           op: eq
           value: "no"

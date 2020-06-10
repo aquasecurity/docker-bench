@@ -607,20 +607,22 @@ groups:
   - id: 3.7
     description: "Ensure that registry certificate file ownership is set to root:root
     (Scored)"
-    audit: stat -c %U:%G /etc/docker/certs.d/*
+    use_multiple_values: true
+    audit: 'find /etc/docker/certs.d/ -type f -exec stat -c "%U:%G %n" {} \;'
     tests:
       test_items:
       - flag: "root:root"
         set: true
     remediation: |
-      chown root:root /etc/docker/certs.d/<registry-name>/*
+      find /etc/docker/certs.d/ -type f -exec chown root:root {} \;
       This would set the ownership and group-ownership for the registry certificate files to root .
     scored: true
 
   - id: 3.8
     description: "Ensure that registry certificate file permissions are set to 444 or
     more restrictive (Scored)"
-    audit: stat -c %a /etc/docker/certs.d/*
+    use_multiple_values: true
+    audit: 'find /etc/docker/certs.d/ -type f -exec stat -c "%a %n" {} \;'
     tests:
       test_items:
       - flag: "444"
@@ -629,7 +631,7 @@ groups:
           value: "444"
         set: true
     remediation: |
-      chmod 444 /etc/docker/certs.d/<registry-name>/*
+      find /etc/docker/certs.d/ -type f -exec chmod 0444 {} \;
       This would set the permissions for registry certificate files to 444 .
     scored: true
 

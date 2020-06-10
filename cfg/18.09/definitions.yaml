@@ -238,7 +238,7 @@ groups:
       dockerd --icc=false
     scored: true
 
-  - id: 2.2
+  - id: 2.2.a
     description: "Ensure the logging level is set to 'info' (Scored)"
     audit: "ps -ef | grep dockerd"
     tests:
@@ -252,9 +252,26 @@ groups:
           value: "info"
         set: true
     remediation: |
-      Ensure that the Docker daemon configuration file has the following configuration included 
+      Ensure that the Docker daemon configuration file has the following configuration included
       "log-level": "info"
-      Alternatively, run the Docker daemon as below: 
+      Alternatively, run the Docker daemon as below:
+      dockerd --log-level="info"
+    scored: true
+
+  - id: 2.2.b
+    description: "Ensure the logging level is set to 'info' (Scored)"
+    audit: "grep log-level /etc/docker/daemon.json"
+    tests:
+      test_items:
+      - flag: "\"log-level\""
+        compare:
+          op: eq
+          value: "info"
+        set: true
+    remediation: |
+      Ensure that the Docker daemon configuration file has the following configuration included
+      "log-level": "info"
+      Alternatively, run the Docker daemon as below:
       dockerd --log-level="info"
     scored: true
 
@@ -298,10 +315,11 @@ groups:
       dockerd --storage-driver aufs
     scored: true
 
-  - id: 2.6
+  - id: 2.6.a
     description: "Ensure TLS authentication for Docker daemon is configured (Scored)"
     audit: "ps -ef | grep dockerd"
     tests:
+      bin_op: and
       test_items:
       - flag: "--tlsverify"
         set: true
@@ -310,6 +328,36 @@ groups:
       - flag: "--tlscert"
         set: true
       - flag: "--tlskey"
+        set: true
+    remediation: |
+      Follow the steps mentioned in the Docker documentation or other references.
+    scored: true
+    
+  - id: 2.6.b
+    description: "Ensure TLS authentication for Docker daemon is configured (Scored)"
+    audit: 'grep tls /etc/docker/daemon.json | tr -d ","'
+    tests:
+      bin_op: and
+      test_items:
+      - flag: '"tlsverify"'
+        compare:
+          op: eq
+          value: true
+        set: true
+      - flag: '"tlscacert"'
+        compare:
+          op: noteq
+          value: '""'
+        set: true
+      - flag: '"tlscert"'
+        compare:
+          op: noteq
+          value: '""'
+        set: true
+      - flag: '"tlskey"'
+        compare:
+          op: noteq
+          value: '""'
         set: true
     remediation: |
       Follow the steps mentioned in the Docker documentation or other references.
@@ -352,7 +400,7 @@ groups:
       dockerd --userns-remap=default
     scored: true
 
-  - id: 2.9
+  - id: 2.9.a
     description: "Ensure the default cgroup usage has been confirmed (Scored)"
     audit: "ps -ef | grep dockerd"
     tests:
@@ -372,8 +420,32 @@ groups:
       For example, 
       dockerd --cgroup-parent=/foobar
     scored: true
+  
+  - id: 2.9.b
+    description: "Ensure the default cgroup usage has been confirmed (Scored)"
+    audit: "grep cgroup-parent /etc/docker/daemon.json"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: ""
+        compare:
+          op: eq
+          value: ""
+        set: false
+      - flag: '"cgroup-parent"'
+        compare:
+          op: nothave
+          value: "/docker"
+        set: true
+    remediation: |
+      The default setting is in line with good security practice and can be left in situ. If you wish 
+      to specifically set a non-default cgroup, pass the --cgroup-parent parameter to the Docker 
+      daemon when starting it. 
+      For example, 
+      dockerd --cgroup-parent=/foobar
+    scored: true
 
-  - id: 2.10
+  - id: 2.10.a
     description: "Ensure base device size is not changed until needed (Scored)"
     audit: "ps -ef | grep dockerd"
     tests:
@@ -383,14 +455,44 @@ groups:
     remediation: |
       Do not set --storage-opt dm.basesize until needed.
     scored: true
+  
+  - id: 2.10.b
+    description: "Ensure base device size is not changed until needed (Scored)"
+    audit: "grep storage-opt /etc/docker/daemon.json"
+    tests:
+      test_items:
+      - flag: '"storage-opt"'
+        compare:
+          op: eq
+          value: ""
+        set: true
+    remediation: |
+      Do not set --storage-opt dm.basesize until needed.
+    scored: true
 
-  - id: 2.11
-    description: "Ensure that authorization for Docker client commands is enabled
-    (Scored)"
+  - id: 2.11.a
+    description: "Ensure that authorization for Docker client commands is enabled (Scored)"
     audit: "ps -ef | grep dockerd"
     tests:
       test_items:
       - flag: "--authorization-plugin"
+        set: true
+    remediation: |
+      Step 1: Install/Create an authorization plugin.
+      Step 2: Configure the authorization policy as desired.
+      Step 3: Start the docker daemon as below:
+      dockerd --authorization-plugin=<PLUGIN_ID>
+    scored: true
+
+  - id: 2.11.b
+    description: "Ensure that authorization for Docker client commands is enabled (Scored)"
+    audit: 'grep authorization-plugin /etc/docker/daemon.json | tr -d ","'
+    tests:
+      test_items:
+      - flag: '"authorization-plugins"'
+        compare:
+          op: noteq
+          value: "[]"
         set: true
     remediation: |
       Step 1: Install/Create an authorization plugin.
@@ -413,7 +515,7 @@ groups:
       dockerd --log-driver=syslog --log-opt syslog-address=tcp://192.xxx.xxx.xxx
     scored: true
 
-  - id: 2.13
+  - id: 2.13.a
     description: "Ensure live restore is Enabled (Scored)"
     audit: "ps -ef | grep dockerd"
     tests:
@@ -426,12 +528,43 @@ groups:
       dockerd --live-restore
     scored: true
 
-  - id: 2.14
+  - id: 2.13.b
+    description: "Ensure live restore is Enabled (Scored)"
+    audit: 'grep live-restore /etc/docker/daemon.json | tr -d ","'
+    tests:
+      test_items:
+      - flag: '"live-restore"'
+        compare:
+          op: eq
+          value: "true"
+        set: true
+    remediation: |
+      Run the docker in daemon mode and pass --live-restore as an argument.
+      For Example,
+      dockerd --live-restore
+    scored: true
+
+  - id: 2.14.a
     description: "Ensure Userland Proxy is Disabled (Scored)"
     audit: "ps -ef | grep dockerd"
     tests:
       test_items:
       - flag: "--userland-proxy"
+        compare:
+          op: eq
+          value: "false"
+        set: true
+    remediation: |
+      You should run the Docker daemon as below:
+      dockerd --userland-proxy=false
+    scored: true
+  
+  - id: 2.14.b
+    description: "Disable Userland Proxy (Scored)"
+    audit: 'grep userland-proxy /etc/docker/daemon.json | tr -d ","'
+    tests:
+      test_items:
+      - flag: '"userland-proxy"'
         compare:
           op: eq
           value: "false"
@@ -475,25 +608,36 @@ groups:
       production systems.
     scored: true
 
-  - id: 2.17
-    description: "Ensure containers are restricted from acquiring new privileges
-    (Scored)"
+  - id: 2.17.a
+    description: "Ensure containers are restricted from acquiring new privileges (Scored)"
     audit: "ps -ef | grep dockerd"
     tests:
-      bin_op: or
       test_items:
       - flag: "--no-new-privileges"
         compare:
           op: eq
           value: "true"
         set: true
-      - flag: "--no-new-privileges"
-        set: true
     remediation: |
       You should run the Docker daemon as below:
       dockerd --no-new-privileges
     scored: true
-
+    
+  - id: 2.17.b
+    description: "Ensure containers are restricted from acquiring new privileges (Scored)"
+    audit: 'grep no-new-privileges /etc/docker/daemon.json | tr -d ","'
+    tests:
+      test_items:
+      - flag: '"no-new-privileges"'
+        compare:
+          op: eq
+          value: "true"
+        set: true
+    remediation: |
+      For example, you should start your container as below:
+      docker run --rm -it --security-opt=no-new-privileges ubuntu bash
+    scored: true
+    
 - id: 3
   description: "Docker daemon configuration files"
   checks:
@@ -1233,7 +1377,7 @@ groups:
          give you the CPU share value based on the system. Even if there are no CPU shares
          configured using the -c or --cpu-shares argument in the docker run command,
          this file will have a value of 1024.
-      If you set one container’s CPU shares to 512 it will receive half of the CPU time compared to
+      If you set one containerâ€™s CPU shares to 512 it will receive half of the CPU time compared to
       the other containers. So if you take 1024 as 100% you can then derive the number that you
       should set for respective CPU shares. For example, use 512 if you want to set it to 50% and
       256 if you want to set it 25%.
@@ -1311,7 +1455,7 @@ groups:
           op: noteq
           value: ""
         set: true
-       - flag: "RestartPolicyName"
+      - flag: "RestartPolicyName"
         compare:
           op: eq
           value: "no"

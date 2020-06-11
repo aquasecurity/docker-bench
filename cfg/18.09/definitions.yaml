@@ -1377,7 +1377,7 @@ groups:
          give you the CPU share value based on the system. Even if there are no CPU shares
          configured using the -c or --cpu-shares argument in the docker run command,
          this file will have a value of 1024.
-      If you set one containerâ€™s CPU shares to 512 it will receive half of the CPU time compared to
+      If you set one container's CPU shares to 512 it will receive half of the CPU time compared to
       the other containers. So if you take 1024 as 100% you can then derive the number that you
       should set for respective CPU shares. For example, use 512 if you want to set it to 50% and
       256 if you want to set it 25%.

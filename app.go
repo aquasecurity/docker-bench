@@ -94,7 +94,7 @@ func getControls(path string) (*check.Controls, error) {
 func getDockerVersion() (string, error) {
 	cmd := exec.Command("docker", "version", "-f", "{{.Server.Version}}")
 	out, err := cmd.Output()
-	return strings.TrimSpace(out), err
+	return strings.TrimSpace(string(out)), err
 }
 
 func getDefinitionFilePath(version string) (string, error) {

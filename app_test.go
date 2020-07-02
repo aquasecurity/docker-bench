@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	cfgdir = "./cfg"
-	ver    = "17.06"
-	path   string
+	cfgdir     = "./cfg"
+	ver        = "17.06"
+	path       string
+	configPath string
 )
 
 func TestGetDockerVersion(t *testing.T) {
@@ -31,7 +32,7 @@ func TestGetDefinitionFilePath(t *testing.T) {
 	}
 
 	for _, ver := range vers {
-		_, err := getDefinitionFilePath(ver)
+		_, err := getFilePath(ver, "definitions.yaml")
 		if err != nil {
 			t.Errorf("unexpected error: %s\n", err)
 		}
@@ -40,19 +41,28 @@ func TestGetDefinitionFilePath(t *testing.T) {
 
 func TestGetControls(t *testing.T) {
 	var err error
-	path, err = getDefinitionFilePath(ver)
+	path, err = getFilePath(ver, "definitions.yaml")
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}
 
-	_, err = getControls(path)
+	_, err = getControls(path, "")
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}
 }
 
 func TestRunControls(t *testing.T) {
-	control, err := getControls(path)
+	var err error
+	path, err = getFilePath(ver, "definitions.yaml")
+	if err != nil {
+		t.Errorf("unexpected error: %s\n", err)
+	}
+	configPath, err = getFilePath(ver, "config.yaml")
+	if err != nil {
+		t.Errorf("unexpected error: %s\n", err)
+	}
+	control, err := getControls(path, configPath)
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}

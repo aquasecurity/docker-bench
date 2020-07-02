@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	
+
 	"github.com/aquasecurity/bench-common/check"
 	"github.com/aquasecurity/bench-common/util"
 	"github.com/golang/glog"
@@ -30,12 +30,15 @@ func app(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	path, err := getDefinitionFilePath(version)
+	path, err := getFilePath(version, "definitions.yaml")
 	if err != nil {
 		util.ExitWithError(err)
 	}
 
-	controls, err := getControls(path)
+	configPath, _ := getFilePath(version, "config.yaml")
+	// Not checking for error because if file doesn't exist then it just nil and ignore.
+
+	controls, err := getControls(path, configPath)
 	if err != nil {
 		util.ExitWithError(err)
 	}
@@ -76,13 +79,21 @@ func runControls(controls *check.Controls, checkList string) check.Summary {
 	return summary
 }
 
-func getControls(path string) (*check.Controls, error) {
+func getControls(path string, substitutionFile string) (*check.Controls, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-
-	controls, err := check.NewControls([]byte(data), nil)
+	s := string(data)
+	if substitutionFile != "" {
+		substitutionData, err := ioutil.ReadFile(substitutionFile)
+		if err != nil {
+			return nil, err
+		}
+		substituMap := util.GetSubstitutionMap(substitutionData)
+		s = util.MakeSubstitutions(s, "", substituMap)
+	}
+	controls, err := check.NewControls([]byte(s), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -97,8 +108,7 @@ func getDockerVersion() (string, error) {
 	return strings.TrimSpace(string(out)), err
 }
 
-func getDefinitionFilePath(version string) (string, error) {
-	filename := "definitions.yaml"
+func getFilePath(version string, filename string) (string, error) {
 
 	glog.V(2).Info(fmt.Sprintf("Looking for config for version %s", version))
 

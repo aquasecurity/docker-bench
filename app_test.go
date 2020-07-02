@@ -45,14 +45,19 @@ func TestGetControls(t *testing.T) {
 		t.Errorf("unexpected error: %s\n", err)
 	}
 
-	_, err = getControls(path)
+	_, err = getControls(path, nil)
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}
 }
 
 func TestRunControls(t *testing.T) {
-	control, err := getControls(path)
+	var err error
+	path, err = getDefinitionFilePath(ver)
+	if err != nil {
+		t.Errorf("unexpected error: %s\n", err)
+	}
+	control, err := getControls(path, nil)
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}

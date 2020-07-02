@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	
+
 	"github.com/aquasecurity/bench-common/check"
 	"github.com/aquasecurity/bench-common/util"
 	"github.com/golang/glog"
@@ -35,7 +35,12 @@ func app(cmd *cobra.Command, args []string) {
 		util.ExitWithError(err)
 	}
 
-	controls, err := getControls(path)
+	constraints, err := getConstraints()
+	if err != nil {
+		util.ExitWithError(err)
+	}
+
+	controls, err := getControls(path, constraints)
 	if err != nil {
 		util.ExitWithError(err)
 	}
@@ -76,13 +81,12 @@ func runControls(controls *check.Controls, checkList string) check.Summary {
 	return summary
 }
 
-func getControls(path string) (*check.Controls, error) {
+func getControls(path string, constraints []string) (*check.Controls, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-
-	controls, err := check.NewControls([]byte(data), nil)
+	controls, err := check.NewControls([]byte(data), constraints)
 	if err != nil {
 		return nil, err
 	}
@@ -113,4 +117,18 @@ func getDefinitionFilePath(version string) (string, error) {
 	}
 
 	return file, nil
+}
+
+func getConstraints() (constraints []string, err error) {
+	swarmStatus, err := GetDockerSwarm()
+	if err != nil {
+		glog.V(1).Info(fmt.Sprintf("Failed to get docker swarm status, %s", err))
+	}
+
+	constraints = append(constraints,
+		fmt.Sprintf("docker-swarm=%s", swarmStatus),
+	)
+
+	glog.V(1).Info(fmt.Sprintf("The constraints are:, %s", constraints))
+	return constraints, nil
 }

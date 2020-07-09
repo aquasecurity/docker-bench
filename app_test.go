@@ -7,7 +7,7 @@ import (
 
 var (
 	cfgdir = "./cfg"
-	ver    = "17.06"
+	ver    = "cis-1.2"
 	path   string
 )
 

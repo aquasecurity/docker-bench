@@ -125,12 +125,15 @@ func getDefinitionFilePath(version string) (string, error) {
 	return file, nil
 }
 
+// getDockerCisVersion select the correct CIS version in compare to running docker version
+// TBD ocp-3.9 auto detection
 func getDockerCisVersion(stringVersion string) (string, error) {
-	dockerVersion, err := version.NewVersion(stringVersion)
+	dockerVersion, err := trimVersion(stringVersion)
 
 	if err != nil {
 		return "", err
 	}
+
 	for benchVersion, dockerConstraints := range benchmarkVersionMap {
 		currConstraints, err := version.NewConstraint(dockerConstraints)
 		if err != nil {
@@ -141,13 +144,35 @@ func getDockerCisVersion(stringVersion string) (string, error) {
 			return benchVersion, nil
 		}
 	}
+
 	tooOldVersion, err := version.NewConstraint("< 1.13.0")
 	if err != nil {
 		return "", err
 	}
+
+	// Vesions before 1.13.0 are not supported by CIS.
 	if tooOldVersion.Check(dockerVersion) {
 		return "", fmt.Errorf("docker version %s is too old", stringVersion)
 	}
-	// TBD ocp-3.9 auto detection
+
 	return "", fmt.Errorf("no suitable CIS version has been found for docker version %s", stringVersion)
+}
+
+// TrimVersion function remove all Matadate or  Prerelease parts
+// because constraints.Check() can't handle comparison with it.
+func trimVersion(stringVersion string) (*version.Version, error) {
+	currVersion, err := version.NewVersion(stringVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	if currVersion.Metadata() != "" || currVersion.Prerelease() != "" {
+		tempStrVersion := strings.Trim(strings.Replace(fmt.Sprint(currVersion.Segments()), " ", ".", -1), "[]")
+		currVersion, err = version.NewVersion(tempStrVersion)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return currVersion, nil
 }

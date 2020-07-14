@@ -8,8 +8,6 @@ import (
 var (
 	cfgdir     = "./cfg"
 	ver        = "17.06"
-	path       string
-	configPath string
 )
 
 func TestGetDockerVersion(t *testing.T) {
@@ -41,7 +39,7 @@ func TestGetFilePath(t *testing.T) {
 
 func TestGetControls(t *testing.T) {
 	var err error
-	path, err = getFilePath(ver, "definitions.yaml")
+	path, err := getFilePath(ver, "definitions.yaml")
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}
@@ -54,11 +52,11 @@ func TestGetControls(t *testing.T) {
 
 func TestRunControls(t *testing.T) {
 	var err error
-	path, err = getFilePath(ver, "definitions.yaml")
+	path, err := getFilePath(ver, "definitions.yaml")
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}
-	configPath, err = getFilePath(ver, "config.yaml")
+	configPath, err := getFilePath(ver, "config.yaml")
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}

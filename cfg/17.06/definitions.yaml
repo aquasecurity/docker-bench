@@ -1601,9 +1601,6 @@ groups:
 
 - id: 7
   description: "Docker Swarm Configuration"
-  constraints: 
-    docker-swarm:
-      - active
   checks:
   - id: 7.1
     description: "Ensure swarm mode is not Enabled, if not needed (Scored)"
@@ -1627,9 +1624,6 @@ groups:
   - id: 7.3
     description: "Ensure swarm services are binded to a specific host interface
     (Scored)"
-    constraints: 
-      docker-swarm:
-      - active
     audit: netstat -lt | grep -i 2377
     tests:
       test_items:

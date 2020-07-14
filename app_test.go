@@ -20,7 +20,7 @@ func TestGetDockerVersion(t *testing.T) {
 }
 
 // Tests all standard docker-bench defintion files
-func TestGetDefinitionFilePath(t *testing.T) {
+func TestGetFilePath(t *testing.T) {
 	d, err := os.Open(cfgdir)
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)

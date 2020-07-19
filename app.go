@@ -11,8 +11,15 @@ import (
 	"github.com/aquasecurity/bench-common/check"
 	"github.com/aquasecurity/bench-common/util"
 	"github.com/golang/glog"
+	"github.com/hashicorp/go-version"
 	"github.com/spf13/cobra"
 )
+
+var benchmarkVersionMap = map[string]string{
+	"cis-1.2": ">= 18.09",
+	"cis-1.1": ">= 17.06, < 18.09",
+	"cis-1.0": ">= 1.13.0, < 17.06",
+}
 
 func app(cmd *cobra.Command, args []string) {
 	var version string
@@ -30,7 +37,7 @@ func app(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	path, err := getDefinitionFilePath(version)
+	path, err := getFilePath(version, "definitions.yaml")
 	if err != nil {
 		util.ExitWithError(err)
 	}
@@ -40,7 +47,11 @@ func app(cmd *cobra.Command, args []string) {
 		util.ExitWithError(err)
 	}
 
-	controls, err := getControls(path, constraints)
+
+	configPath, _ := getFilePath(version, "config.yaml")
+	// Not checking for error because if file doesn't exist then it just nil and ignore.
+
+	controls, err := getControls(path, configPath, constraints)
 	if err != nil {
 		util.ExitWithError(err)
 	}
@@ -81,12 +92,21 @@ func runControls(controls *check.Controls, checkList string) check.Summary {
 	return summary
 }
 
-func getControls(path string, constraints []string) (*check.Controls, error) {
+func getControls(path string, substitutionFile string,constraints []string) (*check.Controls, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	controls, err := check.NewControls([]byte(data), constraints)
+	s := string(data)
+	if substitutionFile != "" {
+		substitutionData, err := ioutil.ReadFile(substitutionFile)
+		if err != nil {
+			return nil, err
+		}
+		substituMap := util.GetSubstitutionMap(substitutionData)
+		s = util.MakeSubstitutions(s, "", substituMap)
+	}
+	controls, err := check.NewControls([]byte(s), constraints)
 	if err != nil {
 		return nil, err
 	}
@@ -98,13 +118,15 @@ func getControls(path string, constraints []string) (*check.Controls, error) {
 func getDockerVersion() (string, error) {
 	cmd := exec.Command("docker", "version", "-f", "{{.Server.Version}}")
 	out, err := cmd.Output()
-	return strings.TrimSpace(string(out)), err
+	if err != nil {
+		return "", err
+	}
+	return getDockerCisVersion(strings.TrimSpace(string(out)))
 }
 
-func getDefinitionFilePath(version string) (string, error) {
-	filename := "definitions.yaml"
+func getFilePath(version string, filename string) (string, error) {
 
-	glog.V(2).Info(fmt.Sprintf("Looking for config for version %s", version))
+	glog.V(2).Info(fmt.Sprintf("Looking for config for  %s", version))
 
 	path := filepath.Join(cfgDir, version)
 	file := filepath.Join(path, filename)
@@ -131,4 +153,54 @@ func getConstraints() (constraints []string, err error) {
 
 	glog.V(1).Info(fmt.Sprintf("The constraints are:, %s", constraints))
 	return constraints, nil
+// getDockerCisVersion select the correct CIS version in compare to running docker version
+// TBD ocp-3.9 auto detection
+func getDockerCisVersion(stringVersion string) (string, error) {
+	dockerVersion, err := trimVersion(stringVersion)
+
+	if err != nil {
+		return "", err
+	}
+
+	for benchVersion, dockerConstraints := range benchmarkVersionMap {
+		currConstraints, err := version.NewConstraint(dockerConstraints)
+		if err != nil {
+			return "", err
+		}
+		if currConstraints.Check(dockerVersion) {
+			glog.V(2).Info(fmt.Sprintf("docker version %s satisfies constraints %s", dockerVersion, currConstraints))
+			return benchVersion, nil
+		}
+	}
+
+	tooOldVersion, err := version.NewConstraint("< 1.13.0")
+	if err != nil {
+		return "", err
+	}
+
+	// Vesions before 1.13.0 are not supported by CIS.
+	if tooOldVersion.Check(dockerVersion) {
+		return "", fmt.Errorf("docker version %s is too old", stringVersion)
+	}
+
+	return "", fmt.Errorf("no suitable CIS version has been found for docker version %s", stringVersion)
+}
+
+// TrimVersion function remove all Matadate or  Prerelease parts
+// because constraints.Check() can't handle comparison with it.
+func trimVersion(stringVersion string) (*version.Version, error) {
+	currVersion, err := version.NewVersion(stringVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	if currVersion.Metadata() != "" || currVersion.Prerelease() != "" {
+		tempStrVersion := strings.Trim(strings.Replace(fmt.Sprint(currVersion.Segments()), " ", ".", -1), "[]")
+		currVersion, err = version.NewVersion(tempStrVersion)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return currVersion, nil
 }

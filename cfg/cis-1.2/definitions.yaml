@@ -36,13 +36,13 @@ groups:
   checks:
   - id: 1.2.1
     description: "Ensure a separate partition for containers has been created (Scored)"
-    audit: "grep /var/lib/docker /proc/mounts"
+    audit: "grep $docker-storage /proc/mounts"
     tests:
       test_items:
-      - flag: "/var/lib/docker"
+      - flag: "$docker-storage"
         set: true
     remediation: |
-      For new installations, you should create a separate partition for the /var/lib/docker mount point.
+      For new installations, you should create a separate partition for the $docker-storage mount point.
       For systems which have already been installed, 
       you should use the Logical Volume Manager (LVM)
       within Linux to create a new partition.
@@ -73,16 +73,16 @@ groups:
 
   - id: 1.2.4
     description: "Ensure auditing is configured for Docker files and directories - 
-    /var/lib/docker (Scored)"
-    audit: "auditctl -l | grep /var/lib/docker"
+    $docker-storage (Scored)"
+    audit: "auditctl -l | grep $docker-storage"
     tests:
       test_items:
-      - flag: "/var/lib/docker"
+      - flag: "$docker-storage"
         set: true
     remediation: |
-      You should add a rule for the /var/lib/docker directory. 
+      You should add a rule for the $docker-storage directory. 
       For example, Add the line as below to the /etc/audit/audit.rules file:
-      -w /var/lib/docker -k docker
+      -w $docker-storage -k docker
       Then restart the audit daemon. For example, 
       service auditd restart"
     scored: true

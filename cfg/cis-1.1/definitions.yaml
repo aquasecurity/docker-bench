@@ -8,12 +8,12 @@ groups:
   checks:
   - id: 1.1
     description: "Ensure a separate partition for containers has been created (Scored)"
-    audit: grep /var/lib/docker /etc/fstab
+    audit: grep $docker-storage /etc/fstab
     tests:
       test_items:
-      - flag: "/var/lib/docker"
+      - flag: "$docker-storage"
         set: true
-    remediation: "For new installations, create a separate partition for /var/lib/docker
+    remediation: "For new installations, create a separate partition for $docker-storage
     mount point. For systems that were previously installed, use the Logical Volume Manager
     (LVM) to create partitions."
     scored: true
@@ -62,16 +62,16 @@ groups:
 
   - id: 1.6
     description: "Ensure auditing is configured for Docker files and directories - 
-    /var/lib/docker (Scored)"
-    audit: "auditctl -l | grep /var/lib/docker"
+    $docker-storage (Scored)"
+    audit: "auditctl -l | grep $docker-storage"
     tests:
       test_items:
-      - flag: "/var/lib/docker"
+      - flag: "$docker-storage"
         set: true
-    remediation: "Add a rule for /var/lib/docker directory.
+    remediation: "Add a rule for $docker-storage directory.
     For example,
     Add the line as below in /etc/audit/audit.rules file:\n
-    -w /var/lib/docker -k docker\n
+    -w $docker-storage -k docker\n
     Then, restart the audit daemon. For example,\n
     service auditd restart"
     scored: true

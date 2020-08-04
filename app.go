@@ -103,7 +103,10 @@ func getControls(path string, substitutionFile string,constraints []string) (*ch
 		if err != nil {
 			return nil, err
 		}
-		substituMap := util.GetSubstitutionMap(substitutionData)
+		substituMap, err := util.GetSubstitutionMap(substitutionData)
+		if err != nil {
+			return nil, err
+		}
 		s = util.MakeSubstitutions(s, "", substituMap)
 	}
 	controls, err := check.NewControls([]byte(s), constraints)
@@ -153,6 +156,7 @@ func getConstraints() (constraints []string, err error) {
 
 	glog.V(1).Info(fmt.Sprintf("The constraints are:, %s", constraints))
 	return constraints, nil
+}
 // getDockerCisVersion select the correct CIS version in compare to running docker version
 // TBD ocp-3.9 auto detection
 func getDockerCisVersion(stringVersion string) (string, error) {

@@ -45,7 +45,7 @@ func TestGetControls(t *testing.T) {
 		t.Errorf("unexpected error: %s\n", err)
 	}
 
-	_, err = getControls(path, "",nil)
+	_, err = getControls(path, "", nil)
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}

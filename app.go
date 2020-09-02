@@ -92,7 +92,7 @@ func runControls(controls *check.Controls, checkList string) check.Summary {
 	return summary
 }
 
-func getControls(path string, substitutionFile string,constraints []string) (*check.Controls, error) {
+func getControls(path string, substitutionFile string, constraints []string) (*check.Controls, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err

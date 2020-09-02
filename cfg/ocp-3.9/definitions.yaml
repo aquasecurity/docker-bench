@@ -1665,6 +1665,9 @@ groups:
 
 #- id: 7
 #  description: "Docker Swarm Configuration"
+#  constraints: 
+#    docker-swarm:
+#      - active
 #  checks:
 #  - id: 7.1
 #    description: "Ensure swarm mode is not Enabled, if not needed (Scored)"

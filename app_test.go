@@ -45,7 +45,7 @@ func TestGetControls(t *testing.T) {
 		t.Errorf("unexpected error: %s\n", err)
 	}
 
-	_, err = getControls(path, "")
+	_, err = getControls(path, "", nil)
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}
@@ -53,6 +53,7 @@ func TestGetControls(t *testing.T) {
 
 func TestRunControls(t *testing.T) {
 	var err error
+
 	path, err := getFilePath(ver, "definitions.yaml")
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
@@ -61,7 +62,7 @@ func TestRunControls(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}
-	control, err := getControls(path, configPath)
+	control, err := getControls(path, configPath, nil)
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}

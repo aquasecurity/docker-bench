@@ -42,10 +42,16 @@ func app(cmd *cobra.Command, args []string) {
 		util.ExitWithError(err)
 	}
 
+	constraints, err := getConstraints()
+	if err != nil {
+		util.ExitWithError(err)
+	}
+
+
 	configPath, _ := getFilePath(version, "config.yaml")
 	// Not checking for error because if file doesn't exist then it just nil and ignore.
 
-	controls, err := getControls(path, configPath)
+	controls, err := getControls(path, configPath, constraints)
 	if err != nil {
 		util.ExitWithError(err)
 	}
@@ -86,7 +92,7 @@ func runControls(controls *check.Controls, checkList string) check.Summary {
 	return summary
 }
 
-func getControls(path string, substitutionFile string) (*check.Controls, error) {
+func getControls(path string, substitutionFile string, constraints []string) (*check.Controls, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -97,10 +103,13 @@ func getControls(path string, substitutionFile string) (*check.Controls, error) 
 		if err != nil {
 			return nil, err
 		}
-		substituMap := util.GetSubstitutionMap(substitutionData)
+		substituMap, err := util.GetSubstitutionMap(substitutionData)
+		if err != nil {
+			return nil, err
+		}
 		s = util.MakeSubstitutions(s, "", substituMap)
 	}
-	controls, err := check.NewControls([]byte(s), nil)
+	controls, err := check.NewControls([]byte(s), constraints)
 	if err != nil {
 		return nil, err
 	}
@@ -135,6 +144,19 @@ func getFilePath(version string, filename string) (string, error) {
 	return file, nil
 }
 
+func getConstraints() (constraints []string, err error) {
+	swarmStatus, err := GetDockerSwarm()
+	if err != nil {
+		glog.V(1).Info(fmt.Sprintf("Failed to get docker swarm status, %s", err))
+	}
+
+	constraints = append(constraints,
+		fmt.Sprintf("docker-swarm=%s", swarmStatus),
+	)
+
+	glog.V(1).Info(fmt.Sprintf("The constraints are:, %s", constraints))
+	return constraints, nil
+}
 // getDockerCisVersion select the correct CIS version in compare to running docker version
 // TBD ocp-3.9 auto detection
 func getDockerCisVersion(stringVersion string) (string, error) {

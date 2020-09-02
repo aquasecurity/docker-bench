@@ -62,7 +62,7 @@ func TestRunControls(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}
-	control, err := getControls(path, configPath,nil)
+	control, err := getControls(path, configPath, nil)
 	if err != nil {
 		t.Errorf("unexpected error: %s\n", err)
 	}

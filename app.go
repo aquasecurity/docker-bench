@@ -26,14 +26,23 @@ func app(cmd *cobra.Command, args []string) {
 	var err error
 
 	// Get version of Docker benchmark to run
-	if dockerVersion != "" {
-		version = dockerVersion
+	if benchmarkVersion != "" {
+		version = benchmarkVersion
 	} else {
-		version, err = getDockerVersion()
-		if err != nil {
-			util.ExitWithError(
-				fmt.Errorf("Version check failed: %s\nAlternatively, you can specify the version with --version",
-					err))
+		if dockerVersion != "" {
+			version, err = getDockerCisVersion(dockerVersion)
+			if err != nil {
+				util.ExitWithError(
+					fmt.Errorf("Version check failed: %s\nAlternatively, you can specify the version with --version",
+						err))
+			}
+		} else {
+			version, err = getDockerVersion()
+			if err != nil {
+				util.ExitWithError(
+					fmt.Errorf("Version check failed: %s\nAlternatively, you can specify the version with --version",
+						err))
+			}
 		}
 	}
 
@@ -46,7 +55,6 @@ func app(cmd *cobra.Command, args []string) {
 	if err != nil {
 		util.ExitWithError(err)
 	}
-
 
 	configPath, _ := getFilePath(version, "config.yaml")
 	// Not checking for error because if file doesn't exist then it just nil and ignore.
@@ -157,6 +165,7 @@ func getConstraints() (constraints []string, err error) {
 	glog.V(1).Info(fmt.Sprintf("The constraints are:, %s", constraints))
 	return constraints, nil
 }
+
 // getDockerCisVersion select the correct CIS version in compare to running docker version
 // TBD ocp-3.9 auto detection
 func getDockerCisVersion(stringVersion string) (string, error) {

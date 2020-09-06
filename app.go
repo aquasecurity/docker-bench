@@ -27,6 +27,10 @@ func app(cmd *cobra.Command, args []string) {
 
 	// Get version of Docker benchmark to run
 	if benchmarkVersion != "" {
+		if dockerVersion != "" {
+			util.ExitWithError(
+				fmt.Errorf("Version check failed: Error can't specify both --version and --benchmark flags\nIf not specify neither docker version will be auto detect"))
+		}
 		version = benchmarkVersion
 	} else {
 		if dockerVersion != "" {

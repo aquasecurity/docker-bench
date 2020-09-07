@@ -25,28 +25,33 @@ func app(cmd *cobra.Command, args []string) {
 	var version string
 	var err error
 
-	// Get version of Docker benchmark to run
+	// Benchmark flag is specify
 	if benchmarkVersion != "" {
+
+		// Check for not specify both --version and --benchmark
 		if dockerVersion != "" {
 			util.ExitWithError(
 				fmt.Errorf("Version check failed: Error can't specify both --version and --benchmark flags\nIf not specify neither docker version will be auto detect"))
 		}
+
+		// Set given CIS benchmark version eg cis-1.2
 		version = benchmarkVersion
 	} else {
-		if dockerVersion != "" {
-			version, err = getDockerCisVersion(dockerVersion)
-			if err != nil {
-				util.ExitWithError(
-				fmt.Errorf("Failed to get a valid CIS benchmark version for Docker version %s: %v",
-					dockerVersion, err))
-			}
-		} else {
-			version, err = getDockerVersion()
+		// Auto-detect the version of Docker that's running
+		if dockerVersion == "" {
+			dockerVersion, err = getDockerVersion()
 			if err != nil {
 				util.ExitWithError(
 					fmt.Errorf("Version check failed: %s\nAlternatively, you can specify the version with --version",
 						err))
 			}
+		}
+		// Set appropriate  CIS benchmark version according to docker version
+		version, err = getDockerCisVersion(dockerVersion)
+		if err != nil {
+			util.ExitWithError(
+				fmt.Errorf("Failed to get a valid CIS benchmark version for Docker version %s: %v",
+					dockerVersion, err))
 		}
 	}
 
@@ -136,7 +141,7 @@ func getDockerVersion() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return getDockerCisVersion(strings.TrimSpace(string(out)))
+	return strings.TrimSpace(string(out)), nil
 }
 
 func getFilePath(version string, filename string) (string, error) {

@@ -37,8 +37,8 @@ func app(cmd *cobra.Command, args []string) {
 			version, err = getDockerCisVersion(dockerVersion)
 			if err != nil {
 				util.ExitWithError(
-					fmt.Errorf("Version check failed: %s\nAlternatively, you can specify the version with --version",
-						err))
+				fmt.Errorf("Failed to get a valid CIS benchmark version for Docker version %s: %v",
+					dockerVersion, err))
 			}
 		} else {
 			version, err = getDockerVersion()

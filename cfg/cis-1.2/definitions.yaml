@@ -24,7 +24,7 @@ groups:
     scored: false
   - id: 1.1.2
     description: "Ensure that the version of Docker is up to date (Not Scored)"  
-    type: skip 
+    type: manual
     audit: "docker version"
     remediation: |
       You should monitor versions of Docker releases and make sure
@@ -1571,7 +1571,8 @@ groups:
     remediation: |
       You should start your container with the options below: 
       docker run --rm -it --security-opt=no-new-privileges ubuntu bash    scored: true
-
+    scored: true
+    
   - id: 5.26
     description: "Ensure that container health is checked at runtime (Scored)"
     type: manual

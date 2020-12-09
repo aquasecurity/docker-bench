@@ -31,7 +31,7 @@ func app(cmd *cobra.Command, args []string) {
 		// Check for not specify both --version and --benchmark
 		if dockerVersion != "" {
 			util.ExitWithError(
-				fmt.Errorf("Version check failed: Error can't specify both --version and --benchmark flags\nIf not specify neither docker version will be auto detect"))
+				fmt.Errorf("It is an error to specify both --version and --benchmark flags"))
 		}
 
 		// Set given CIS benchmark version eg cis-1.2

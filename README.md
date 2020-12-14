@@ -47,7 +47,7 @@ go build -o docker-bench .
 
 # Tests
 Tests are specified in definition files `cfg/<version>/definitions.yaml`,
-where `<version>` is the version of docker for which the test applies.
+where `<version>` is the version of CIS for which the test applies.
 
 # Contributing
 We welcome PRs and issue reports. 

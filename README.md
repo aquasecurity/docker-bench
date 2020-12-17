@@ -1,7 +1,8 @@
-[![GitHub release][release-img]][release]
+[![GitHub Release][release-img]][release]
 [![License][license-img]][license]
 [![Coverage Status][cov-img]][cov]
-[![Build Status][ci-img]][ci]
+[![GitHub Build Actions][build-action-img]][actions]
+[![GitHub Release Actions][release-action-img]][actions]
 
 Docker-bench is a Go application that checks whether Docker is deployed securely by running the checks documented in the [CIS Docker Benchmark](https://www.cisecurity.org/benchmark/docker/).
 
@@ -55,11 +56,12 @@ Your PR is more likely to be accepted if it includes tests. (We have not histori
 You're welcome to submit a draft PR if you would like early feedback on an idea or an approach.
 Happy coding!
 
+[actions]: https://github.com/aquasecurity/docker-bench/actions
+[build-action-img]: https://github.com/aquasecurity/docker-bench/workflows/build/badge.svg
 [cov-img]: https://codecov.io/github/aquasecurity/docker-bench/branch/main/graph/badge.svg
 [cov]: https://codecov.io/github/aquasecurity/docker-bench
-[ci-img]: https://travis-ci.com/aquasecurity/docker-bench.svg?branch=main
-[ci]: https://travis-ci.com/aquasecurity/docker-bench
 [license-img]: https://img.shields.io/badge/License-Apache%202.0-blue.svg
 [license]: https://opensource.org/licenses/Apache-2.0
 [release-img]: https://img.shields.io/github/release/aquasecurity/docker-bench.svg
 [release]: https://github.com/aquasecurity/docker-bench/releases
+[release-action-img]: https://github.com/aquasecurity/docker-bench/workflows/release/badge.svg

@@ -22,19 +22,10 @@ var benchmarkVersionMap = map[string]string{
 }
 
 func app(cmd *cobra.Command, args []string) {
-	var version string
-	var err error
 
-	// Get version of Docker benchmark to run
-	if dockerVersion != "" {
-		version = dockerVersion
-	} else {
-		version, err = getDockerVersion()
-		if err != nil {
-			util.ExitWithError(
-				fmt.Errorf("Version check failed: %s\nAlternatively, you can specify the version with --version",
-					err))
-		}
+	version, err := ResolveCisVersion(benchmarkVersion, dockerVersion)
+	if err != nil {
+		util.ExitWithError(err)
 	}
 
 	path, err := getFilePath(version, "definitions.yaml")
@@ -46,7 +37,6 @@ func app(cmd *cobra.Command, args []string) {
 	if err != nil {
 		util.ExitWithError(err)
 	}
-
 
 	configPath, _ := getFilePath(version, "config.yaml")
 	// Not checking for error because if file doesn't exist then it just nil and ignore.
@@ -61,6 +51,38 @@ func app(cmd *cobra.Command, args []string) {
 	if err != nil {
 		util.ExitWithError(err)
 	}
+}
+
+// ResolveCisVersion returns final cis version to use.
+func ResolveCisVersion(benchmarkVersion, dockerVersion string) (string, error) {
+	var version string
+	var err error
+
+	// Benchmark flag is specify
+	if benchmarkVersion != "" {
+
+		// Check for not specify both --version and --benchmark
+		if dockerVersion != "" {
+			return "", fmt.Errorf("It is an error to specify both --version and --benchmark flags")
+		}
+
+		// Set given CIS benchmark version eg cis-1.2
+		version = benchmarkVersion
+	} else {
+		// Auto-detect the version of Docker that's running
+		if dockerVersion == "" {
+			dockerVersion, err = getDockerVersion()
+			if err != nil {
+				return "", fmt.Errorf("Version check failed: %s\nAlternatively, you can specify the version with --version", err)
+			}
+		}
+		// Set appropriate  CIS benchmark version according to docker version
+		version, err = getDockerCisVersion(dockerVersion)
+		if err != nil {
+			return "", fmt.Errorf("Failed to get a valid CIS benchmark version for Docker version %s: %v", dockerVersion, err)
+		}
+	}
+	return version, nil
 }
 
 func outputResults(controls *check.Controls, summary check.Summary) error {
@@ -92,7 +114,7 @@ func runControls(controls *check.Controls, checkList string) check.Summary {
 	return summary
 }
 
-func getControls(path string, substitutionFile string, constraints []string) (*check.Controls, error) {
+func getControls(path, substitutionFile string, constraints []string) (*check.Controls, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -124,7 +146,7 @@ func getDockerVersion() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return getDockerCisVersion(strings.TrimSpace(string(out)))
+	return strings.TrimSpace(string(out)), nil
 }
 
 func getFilePath(version string, filename string) (string, error) {
@@ -157,6 +179,7 @@ func getConstraints() (constraints []string, err error) {
 	glog.V(1).Info(fmt.Sprintf("The constraints are:, %s", constraints))
 	return constraints, nil
 }
+
 // getDockerCisVersion select the correct CIS version in compare to running docker version
 // TBD ocp-3.9 auto detection
 func getDockerCisVersion(stringVersion string) (string, error) {

@@ -15,12 +15,13 @@ docker-bench currently supports tests as defined in the following CIS Docker Ben
 
 | CIS Benchmark | docker-bench cfg directory | Docker versions |
 |---|---|---|
-| [Docker Benchmark v1.2.0](https://workbench.cisecurity.org/benchmarks/2351) | 18.09 | 18.09 and Docker Enterprise 2.1 |
-| [Docker Community Edition Benchmark v1.1.0](https://workbench.cisecurity.org/benchmarks/552) | 17.06 | 17.06 |
-| [Docker Benchmark v1.0.0](https://workbench.cisecurity.org/benchmarks/363) | 1.13.0 | 1.13.0 |
+| [Docker Benchmark v1.2.0](https://workbench.cisecurity.org/benchmarks/2351) | cis-1.2 | 18.09 and Docker Enterprise 2.1 |
+| [Docker Community Edition Benchmark v1.1.0](https://workbench.cisecurity.org/benchmarks/552) | cis-1.1 | 17.06 |
+| [Docker Benchmark v1.0.0](https://workbench.cisecurity.org/benchmarks/363) | cis-1.0 | 1.13.0 |
 
-docker-bench will determine the test set to run based on the Docker version running on the host machine.
-The version to run tests for can also be specified manually with the `--version <ver>` commandline flag.
+
+docker-bench will determine the test set to run based on the Docker version running on the host machine. 
+The version to run tests for can also be specified manually with the `--version <Docker version>` or `--benchmark <CIS benchmark version>` commandline flag.
 
 ## Installation
 ### Installing from sources
@@ -40,13 +41,15 @@ go build -o docker-bench .
 ./docker-bench
 
 # Run checks for specified Docker version
-./docker-bench --version 1.13.0
+./docker-bench --version 18.09
 
+# Run checks for specified cis Benchmark 
+./docker-bench --benchmark cis-1.2
 ```
 
 # Tests
 Tests are specified in definition files `cfg/<version>/definitions.yaml`,
-where `<version>` is the version of docker for which the test applies.
+where `<version>` is the version of CIS for which the test applies.
 
 # Contributing
 We welcome PRs and issue reports.

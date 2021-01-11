@@ -13,10 +13,10 @@ groups:
     description: "Ensure the container host has been Hardened (Not Scored)"
     type: manual
     audit: |
-            Ensure that the host specific security guidelines are followed.
-            Ask the system administrators which security benchmark the current
-            host system should currently be compliant with and check that security
-            standards associated with this standard are currently in place.
+      Ensure that the host specific security guidelines are followed.
+      Ask the system administrators which security benchmark the current
+      host system should currently be compliant with and check that security
+      standards associated with this standard are currently in place.
     remediation: |
       You may consider various CIS Security Benchmarks for your container host.
       If you have other security guidelines or regulatory requirements
@@ -24,11 +24,11 @@ groups:
     scored: false
 
   - id: 1.1.2
-    description: "Ensure that the version of Docker is up to date (Not Scored)"
+    description: "Ensure that the version of CRI-O is up to date (Not Scored)"
     type: manual
-    audit: "docker version"
+    audit: "crio --version"
     remediation: |
-      You should monitor versions of Docker releases and make sure
+      You should monitor versions of CRI-O releases and make sure
       your software is updated as required.
     scored: false
 
@@ -54,7 +54,7 @@ groups:
     audit: "ls -l '/var/run/crio/crio.sock'"
     type: manual
     remediation: |
-      You should remove any untrusted users from the docker group.
+      You should remove any untrusted users from the CRI-O group.
       Additionally, you should not create a mapping of sensitive directories from the host to container volumes."
     scored: true
 
@@ -84,7 +84,7 @@ groups:
     remediation: |
       You should add a rule for the $crio-storage directory.
       For example, Add the line as below to the /etc/audit/audit.rules file:
-      -w $crio-storage -k docker
+      -w $crio-storage -k crio
       Then restart the audit daemon. For example,
       service auditd restart"
     scored: true
@@ -135,15 +135,6 @@ groups:
       -w /var/run/crio/crio.sock -k crio
       Then restart the audit daemon. For example:
       service auditd restart"
-    scored: true
-
-  - id: 1.2.8
-    description: "Ensure auditing is configured for CRI-O files and directories -
-    /etc/default/crio is not applicable on CRI-O (Not Scored)"
-    type: manual
-    remediation: |
-      "Ensure auditing is configured for CRI-O files and directories -
-      /etc/default/crio is not applicable on CRI-O".
     scored: true
 
   - id: 1.2.9
@@ -242,18 +233,9 @@ groups:
           value: "info"
         set: true
     remediation: |
-      Ensure that the Docker daemon configuration file has the following configuration included
+      Ensure that the CRI-O daemon configuration file has the following configuration included
       "log-level": "info"
     scored: true
-
-  - id: 2.3
-    description: "Ensure CRI-O is allowed to make changes to iptables (Not Scored)"
-    type: manual
-    audit: |
-            2.3 Ensure CRI-O is allowed to make changes to iptables is not applicable on CRI-O
-    remediation: |
-      2.3 Ensure CRI-O is allowed to make changes to iptables is not applicable on CRI-O
-    scored: false
 
   - id: 2.4
     description: "Ensure insecure registries are not used (Scored)"
@@ -277,15 +259,6 @@ groups:
       Do not explicitly use aufs as storage driver.
     scored: true
 
-  - id: 2.6
-    description: "Ensure TLS authentication for CRI-O daemon is configured (Scored)"
-    type: manual
-    audit: |
-            2.6 Ensure TLS authentication for CRI-O daemon is configured is not applicable on CRI-O
-    remediation: |
-      2.6 Ensure TLS authentication for CRI-O daemon is configured is not applicable on CRI-O
-    scored: false
-
   - id: 2.7
     description: "Ensure the default ulimit is configured appropriately (Not Scored)"
     audit: "grep 'default_ulimits =' /etc/crio/crio.conf"
@@ -307,7 +280,7 @@ groups:
       - flag: ""
         set: true
     remediation: |
-      Please consult the Docker documentation for various ways in which this can be configured
+      Please consult the CRI-O documentation for various ways in which this can be configured
       depending upon your requirements. Your steps might also vary based on platform - For
       example, on Red Hat, sub-UIDs and sub-GIDs mapping creation do not work automatically.
       You might have to create your own mapping.
@@ -330,44 +303,6 @@ groups:
       The default setting is in line with good security practice and can be left in situ. If you wish
       to specifically set a non-default cgroup.
     scored: true
-
-  - id: 2.10
-    description: "Ensure base device size is not changed until needed (Not Scored)"
-    type: manual
-    audit: |
-            '2.10 Ensure base device size is not changed until needed' is not applicable on CRI-O, because it's not implemented in CRI-O.
-    remediation: |
-      This benchmark test is not applicable on CRI-O.
-    scored: false
-
-  - id: 2.11
-    description: "Ensure that authorization for CRI-O client commands is enabled (Not Scored)"
-    type: manual
-    audit: |
-            '2.11 Ensure that authorization for CRI-O client commands is enabled' is not applicable on CRI-O.
-            Please refer to test 1.2.2.
-    remediation: |
-      This benchmark test is not applicable on CRI-O. Please refer to test 1.2.2.
-    scored: false
-
-  - id: 2.12
-    description: "Ensure centralized and remote logging is configured (Not Scored)"
-    type: manual
-    audit: |
-            '2.12 Ensure centralized and remote logging is configured' is not applicable on CRI-O.
-            CRI-O only allows absolute directories.
-    remediation: |
-      This benchmark test is not applicable because CRI-O only allows absolute directories.
-    scored: false
-
-  - id: 2.13.a
-    description: "Ensure live restore is Enabled (Not Scored)"
-    type: manual
-    audit: |
-            'Ensure that authorization for CRI-O client commands is enabled' is not applicable on CRI-O.
-    remediation: |
-      This benchmark test is not applicable on CRI-O.
-    scored: false
 
   - id: 2.14
     description: "Ensure Userland Proxy is Disabled (Scored)"
@@ -394,15 +329,6 @@ groups:
       By default, CRI-O's default seccomp profile is applied. If this is adequate for your
       environment, no action is necessary. Alternatively, if you choose to apply your own
       seccomp profile, change the "seccomp_profile" configuration in /etc/crio/crio.conf
-    scored: false
-
-  - id: 2.16
-    description: "Ensure that experimental features are not implemented in production (Not Scored)"
-    type: manual
-    audit: |
-            '2.16 Ensure that experimental features are not implemented in production' is not applicable on CRI-O.
-    remediation: |
-      This benchmark test is not applicable to CRI-O.
     scored: false
 
   - id: 2.17
@@ -454,6 +380,7 @@ groups:
       ownership and group for the file to root.
       For example,
       chmod 644 /usr/lib/systemd/system/crio.service
+      Check if the value is equal or lower than 644.
     scored: true
 
   - id: 3.3
@@ -491,6 +418,7 @@ groups:
       ownership and group for the file to root.
       For example,
       chmod 644 /var/run/crio/crio.sock
+      Check if the value is equal or lower than 644.
     scored: true
 
   - id: 3.5
@@ -525,6 +453,7 @@ groups:
       You should run the following command:
       chmod 755 /etc/crio
       This sets the permissions for the directory to 755.
+      Check if the value is equal or lower than 755.
     scored: true
 
   - id: 3.7
@@ -556,10 +485,11 @@ groups:
       You should execute the following command:
       chmod 444 /etc/containers/registries.conf
       This would set the permissions for registry configuration file to 444.
+      Check if the value is equal or lower than 444.
     scored: true
     
   - id: 3.20
-    description: "The CRI-O benchmark checks if the /etc/sysconfig/crio file ownership is set to root:root. 
+    description: "Ensure that the /etc/sysconfig/crio file ownership is set to root:root. 
     (Scored)"
     audit: stat -c %U:%G /etc/sysconfig/crio | grep root:root
     tests:
@@ -576,7 +506,7 @@ groups:
     scored: true
     
   - id: 3.21
-    description: "The CRI-O benchmark checks if the /etc/sysconfig/crio file permissions is set to 
+    description: "Ensure that the /etc/sysconfig/crio file permissions is set to 
     644 or more restrictive. (Scored)"
     audit: stat -c %a /etc/sysconfig/crio
     tests:
@@ -590,6 +520,7 @@ groups:
       You should execute the following command:
       chmod 644 /etc/sysconfig/crio
       This sets the file permissions for this file to 644.
+      Check if the value is equal or lower than 644.
     scored: true
 
 - id: 5
@@ -698,20 +629,6 @@ groups:
       You should ensure that containers only expose needed ports. These settings are declared in the configuration.yaml file.
     scored: false
 
-  - id: 5.10
-    description: "Ensure that the memory usage for container is limited (Scored)"
-    type: manual
-    remediation: |
-      This is a setting in Kubernetes.
-    scored: true
-
-  - id: 5.11
-    description: "Ensure that CPU priority is set appropriately on container (Scored)"
-    type: manual
-    remediation: |
-      This is a setting in Kubernetes.
-    scored: true
-
   - id: 5.12
     description: "Ensure that the container's root filesystem is mounted as read only
     (Scored)"
@@ -739,21 +656,6 @@ groups:
       You should bind the container port to a specific host interface on the desired host port.
     scored: true
 
-  - id: 5.14
-    description: "Ensure that the 'on-failure' container restart policy is set to '5' (Scored)"
-    type: manual
-    remediation: |
-      This is a setting in Kubernetes.
-    scored: true
-
-  - id: 5.17
-    description: "Ensure that host devices are not directly exposed to containers (Not
-    Scored)"
-    type: manual
-    remediation: |
-      This functionality is not implemented in CRI-O runtime.
-    scored: false
-
   - id: 5.18
     description: "Ensure that the default ulimit is overwritten at runtime, only if needed
     (Not Scored)"
@@ -761,39 +663,6 @@ groups:
     remediation: |
       You should only override the default ulimit settings if needed in a specific case. This can be set
       in /etc/crio/crio.conf
-    scored: true
-
-  - id: 5.9
-    description: "Ensure that the host's network namespace is not shared (Scored)"
-    type: manual 
-    remediation: |
-      This setting can be found under the Pod Security Standards in Kubernetes.
-      
-      You may consider running the CIS Security Kubernetes Benchmark on your kubernetes hosts. 
-      If you have other security guidelines or regulatory requirements 
-      to adhere to, please follow them as suitable in your environment. 
-    scored: true
-
-  - id: 5.15
-    description: "Ensure that the host's process namespace is not shared (Scored)"
-    type: manual 
-    remediation: |
-      This setting can be found under the Pod Security Standards in Kubernetes.
-      
-      You may consider running the CIS Security Kubernetes Benchmark on your kubernetes hosts. 
-      If you have other security guidelines or regulatory requirements 
-      to adhere to, please follow them as suitable in your environment. 
-    scored: true
-
-  - id: 5.16
-    description: "Ensure that the host's IPC namespace is not shared (Scored)"
-    type: manual 
-    remediation: |
-      This setting can be found under the Pod Security Standards in Kubernetes.
-      
-      You may consider running the CIS Security Kubernetes Benchmark on your kubernetes hosts. 
-      If you have other security guidelines or regulatory requirements 
-      to adhere to, please follow them as suitable in your environment. 
     scored: true
 
   - id: 5.19
@@ -809,13 +678,6 @@ groups:
       In your container configuration, ensure that propagation is set to private.
     scored: true
 
-  - id: 5.20
-    description: "Ensure that the host's UTS namespace is not shared (Scored)"
-    type: manual 
-    remediation: |
-      This isn't applicable to the CRI-O runtime.
-    scored: true
-
   - id: 5.21
     description: "Ensure the default seccomp profile is not Disabled (Scored)"
     audit: /usr/local/bin/crictl ps -a -q | xargs /usr/local/bin/crictl inspect | grep -i seccompprofilepath 
@@ -828,20 +690,6 @@ groups:
       By default, seccomp profiles are enabled. 
       You do not need to do anything unless you want to modify and use a modified seccomp profile.
     scored: true
-
-  - id: 5.22
-    description: "Ensure that docker exec commands are not used with the privileged option (Scored)"
-    type: manual 
-    remediation: |
-      This isn't applicable to the CRI-O runtime.
-    scored: true
-
-  - id: 5.23
-    description: "Ensure that docker exec commands are not used with the user=root option (Not Scored)"
-    type: manual 
-    remediation: |
-      This isn't applicable to the CRI-O runtime.
-    scored: false
 
   - id: 5.24
     description: "Ensure cgroup usage is confirmed (Scored)"
@@ -865,13 +713,6 @@ groups:
         set: true
     remediation: |
       You should change your container configuration and set NoNewPrivileges to true.
-    scored: true
-  
-  - id: 5.26
-    description: "Ensure that container health is checked at runtime (Scored)"
-    type: manual 
-    remediation: |
-      This isn't applicable to the CRI-O runtime.
     scored: true
 
   - id: 5.27
@@ -902,24 +743,6 @@ groups:
     remediation: |
         The PID limit should be used and shouldn't be set to max.
         Configure the PID limit in your crio.conf file, the default is 1024.
-    scored: true
-
-  - id: 5.29
-    description: "Ensure that CRI-O's default bridge is not used (Not Scored)"
-    type: manual 
-    remediation: |
-      This isn't applicable to the CRI-O runtime.
-    scored: false
-
-  - id: 5.30
-    description: "Ensure that the host's user namespaces is not shared (Scored)"
-    type: manual 
-    remediation: |
-      Namespaces are configured in kubernetes. 
-      
-      You may consider running the CIS Security Kubernetes Benchmark on your kubernetes hosts. 
-      If you have other security guidelines or regulatory requirements 
-      to adhere to, please follow them as suitable in your environment. 
     scored: true
 
   - id: 5.31

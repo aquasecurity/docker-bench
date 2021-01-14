@@ -571,7 +571,7 @@ groups:
           value: ""
         set: true
     remediation: |
-      You should not run containers in privileged mode.
+      You should only run containers in privileged mode if you trust this workload. 
     scored: true
 
   - id: 5.5
@@ -639,7 +639,7 @@ groups:
       - flag: "ReadonlyRootfs=false"
         set: false
     remediation: |
-      This is a setting in a .yaml file:
+      This is a setting the container configuration .yaml file:
       readOnlyRootFilesystem: true
     scored: true
 
@@ -783,5 +783,5 @@ groups:
     type: manual
     remediation: |
       You should periodically check your container inventory on each host and clean up
-      containers which are not in active use.
+      containers which are not in active use. (E.g.: "crictl ps -a | grep -v Running" and review output)
     scored: false

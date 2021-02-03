@@ -36,7 +36,7 @@ groups:
   checks:
   - id: 1.2.1
     description: "Ensure a separate partition for containers has been created (Scored)"
-    audit: "grep $docker-storage /proc/mounts"
+    audit: "grep '$docker-storage\\s' /proc/mounts"
     tests:
       test_items:
       - flag: "$docker-storage"

@@ -1064,12 +1064,12 @@ groups:
 
   - id: 4.5
     description: "Ensure Content trust for Docker is Enabled (Scored)"
-    audit: echo $DOCKER_CONTENT_TRUST
+    audit: echo DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST
     tests:
       test_items:
-      - flag: 1
+      - flag: DOCKER_CONTENT_TRUST
         compare:
-          op: has
+          op: eq
           value: 1
         set: true
     remediation: |

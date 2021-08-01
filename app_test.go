@@ -108,6 +108,8 @@ func Test_getDockerCisVersion(t *testing.T) {
 		want          string
 		wantErr       bool
 	}{
+		{name: "Test for version 20.10", stringVersion: "20.10", want: "cis-1.3.1", wantErr: false},
+		{name: "Test for version 20.04", stringVersion: "20.04", want: "cis-1.3.1", wantErr: false},
 		{name: "Test for version 18.09", stringVersion: "18.09", want: "cis-1.2", wantErr: false},
 		{name: "Test for version 19.3.6", stringVersion: "19.3.6", want: "cis-1.2", wantErr: false},
 		{name: "Test for version 18.06", stringVersion: "18.06", want: "cis-1.1", wantErr: false},

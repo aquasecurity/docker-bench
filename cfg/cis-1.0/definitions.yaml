@@ -1430,7 +1430,7 @@ groups:
   - id: 5.22
     description: "Ensure docker exec commands are not used with privileged option
     (Scored)"
-    audit: "ausearch -k docker | grep exec | grep privileged"
+    audit: "ausearch -if $audit-log -k docker | grep exec | grep privileged"
     tests:
       test_items:
       - flag: ""
@@ -1439,13 +1439,18 @@ groups:
           value: ""
         set: true
     remediation: |
+      If audit rule for docker file not set\n
+      Add the line as below in /etc/audit/audit.rules file:\n
+      -w /usr/bin/docker -p rwxa -k docker-daemon\n
+      Then, restart the audit daemon.\n
+      service auditd restart\n
       Do not use --privileged option in docker exec command.
     scored: true
 
   - id: 5.23
     description: "Ensure docker exec commands are not used with user option
     (Scored)"
-    audit: "ausearch -k docker | grep exec | grep user"
+    audit: "ausearch -if $audit-log -k docker | grep exec | grep user"
     tests:
       test_items:
       - flag: ""
@@ -1454,6 +1459,11 @@ groups:
           value: ""
         set: true
     remediation: |
+      If audit rule for docker file not set\n
+      Add the line as below in /etc/audit/audit.rules file:\n
+      -w /usr/bin/docker -p rwxa -k docker-daemon\n
+      Then, restart the audit daemon.\n
+      service auditd restart\n
       Do not use --user option in docker exec command.
     scored: true
 

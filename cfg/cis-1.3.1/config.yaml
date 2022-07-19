@@ -8,3 +8,6 @@ docker-storage:
 
 docker-config-file:
   value: /etc/docker/daemon.json
+
+audit-log:
+  value: /var/log/audit/audit.log

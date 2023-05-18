@@ -49,13 +49,13 @@ groups:
   
   - id: 1.1.4
     description: "Ensure auditing is configured for Docker files and directories - /run/containerd (Automated)"
-    audit: "auditctl -l | grep /run/containerd"
+    audit: "auditctl -l | grep '/run/containerd\\s'"
     tests:
       test_items:
       - flag: "/run/containerd"
         set: true
     remediation: |
-      You should add a rule for the $docker-storage directory. 
+      You should add a rule for the /run/containerd directory. 
       For example, 
       Add the line as below to the /etc/audit/audit.rules file:
       -a exit,always -F path=/run/containerd -F perm=war -k docker

@@ -119,8 +119,8 @@ groups:
   - id: 1.1.8
     description: "Ensure auditing is configured for Docker files and directories - containerd.sock (Automated)"
     audit: |
-      test_file=$(grep 'containerd.sock' /etc/containerd/config.toml | awk -F "=" '{print $2}')
-      if test -f "$test_file"; then
+      test_file=$(grep 'containerd.sock' /etc/containerd/config.toml | awk -F "\"" '{print $2}')
+      if test -S "$test_file"; then
         auditctl -l | grep $test_file
       fi
     tests:

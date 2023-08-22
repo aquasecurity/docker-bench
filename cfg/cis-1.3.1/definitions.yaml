@@ -140,14 +140,13 @@ groups:
   - id: 1.1.9
     description: "Ensure auditing is configured for Docker files and directories - docker.socket (Automated)"
     audit: |
-      test_file=$(systemctl show -p FragmentPath docker.socket | awk -F "=" '{print $2}')
-      socket_file=$(grep ListenStream $testfile)
-      if test -f "$socket_file"; then
+      socket_file=$(grep '^ListenStream' $(systemctl show -p FragmentPath docker.socket | awk -F"=" '{print $2}')| awk -F "=" '{print $2}')
+      if test -S "$socket_file"; then
         auditctl -l | grep $socket_file
       fi
     tests:
       test_items:
-      - flag: "docker.sockest"
+      - flag: "docker.sock"
         set: true
     remediation: |
       If the file exists, you should add a rule for it. 

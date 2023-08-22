@@ -152,7 +152,7 @@ groups:
       If the file exists, you should add a rule for it. 
       For example: 
       Add the line below to the /etc/audit/audit.rules file:
-      -w /var/run/docker.sock -k docker
+      -w $socket_file -k docker
       Then restart the audit daemon. 
       For example:
       systemctl restart auditd

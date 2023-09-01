@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -116,13 +115,13 @@ func runControls(controls *check.Controls, checkList string) check.Summary {
 }
 
 func getControls(path, substitutionFile string, constraints []string) (*check.Controls, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 	s := string(data)
 	if substitutionFile != "" {
-		substitutionData, err := ioutil.ReadFile(substitutionFile)
+		substitutionData, err := os.ReadFile(substitutionFile)
 		if err != nil {
 			return nil, err
 		}

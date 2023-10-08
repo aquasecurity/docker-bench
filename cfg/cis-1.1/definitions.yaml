@@ -22,7 +22,7 @@ groups:
     description: "Ensure the container host has been Hardened (Not Scored)"
     type: manual
     remediation: "You may consider various CIS Security Benchmarks for your container host.
-    If you have other security guidelines or regulatory requirements to adhere to, please 
+    If you have other security guidelines or regulatory requirements to adhere to, please
     follow them as suitable in your environment.
     Additionally, you can run a kernel with grsecurity and PaX . This would add many safety
     checks, both at compile-time and run-time. It is also designed to defeat many exploits and
@@ -61,7 +61,7 @@ groups:
     scored: true
 
   - id: 1.6
-    description: "Ensure auditing is configured for Docker files and directories - 
+    description: "Ensure auditing is configured for Docker files and directories -
     $docker-storage (Scored)"
     audit: "auditctl -l | grep $docker-storage"
     tests:
@@ -245,7 +245,7 @@ groups:
       Alternatively, run the Docker daemon as below:
       dockerd --log-level="info"
     scored: true
-    
+
   - id: 2.3
     description: "Ensure Docker is allowed to make changes to iptables (Scored)"
     audit: "ps -ef | grep dockerd"
@@ -308,7 +308,7 @@ groups:
     remediation: |
       Follow the steps mentioned in the Docker documentation or other references.
     scored: true
-    
+
   - id: 2.6.b
     description: "Ensure TLS authentication for Docker daemon is configured (Scored)"
     audit: 'grep tls /etc/docker/daemon.json | tr -d ","'
@@ -395,7 +395,7 @@ groups:
       For Example,
       dockerd --cgroup-parent=/foobar
     scored: true
-  
+
   - id: 2.9.b
     description: "Ensure the default cgroup usage has been confirmed (Scored)"
     audit: "grep cgroup-parent /etc/docker/daemon.json"
@@ -429,7 +429,7 @@ groups:
     remediation: |
       Do not set --storage-opt dm.basesize until needed.
     scored: true
-  
+
   - id: 2.10.b
     description: "Ensure base device size is not changed until needed (Scored)"
     audit: "grep storage-opt /etc/docker/daemon.json"
@@ -545,7 +545,7 @@ groups:
       Run the Docker daemon as below:
       dockerd --userland-proxy=false
     scored: true
-  
+
   - id: 2.15.b
     description: "Disable Userland Proxy (Scored)"
     audit: 'grep userland-proxy /etc/docker/daemon.json | tr -d ","'
@@ -608,7 +608,7 @@ groups:
       Run the Docker daemon as below:
       dockerd --no-new-privileges
     scored: true
-  
+
   - id: 2.18.b
     description: "Ensure containers are restricted from acquiring new privileges (Scored)"
     audit: 'grep no-new-privileges /etc/docker/daemon.json | tr -d ","'
@@ -623,7 +623,7 @@ groups:
       For example, you should start your container as below:
       docker run --rm -it --security-opt=no-new-privileges ubuntu bash
     scored: true
-    
+
 - id: 3
   description: "Docker daemon configuration files"
   checks:
@@ -968,7 +968,7 @@ groups:
       - Scan Docker images for vulnerabilities in their dependencies and configurations
         they will impose upon your network.
     scored: false
- 
+
   - id: 4.3
     description: "Ensure unnecessary packages are not installed in the container (Not Scored)"
     type: manual
@@ -1234,12 +1234,12 @@ groups:
       test_items:
       - flag: "CpuShares"
         compare:
-          op: gt 
+          op: gt
           value: 0
         set: true
       - flag: "CpuShares"
         compare:
-          op: lt 
+          op: lt
           value: 1024
         set: true
     remediation: |
@@ -1611,7 +1611,7 @@ groups:
 
 - id: 7
   description: "Docker Swarm Configuration"
-  constraints: 
+  constraints:
     docker-swarm:
       - active
   checks:
@@ -1707,7 +1707,7 @@ groups:
       Run the below command to set the desired expiry time.
       For example,
       docker swarm update --cert-expiry 48h
-    scored: false 
+    scored: false
 
   - id: 7.9
     description: "Ensure CA certificates are rotated as appropriate (Not Scored)"

@@ -1,0 +1,30 @@
+---
+# Extend the `default` configuration provided by `yamllint`
+extends: default
+
+yaml-files:
+  - '*.yaml'
+  - '*.yml'
+  - .yamllint
+
+rules:
+  empty-values:
+    forbid-in-block-mappings: true
+    forbid-in-flow-mappings: true
+  line-length:
+    max: 160
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
+  braces:
+    max-spaces-inside: 1
+    level: error
+  brackets:
+    max-spaces-inside: 1
+    level: error
+  empty-lines: disable
+  comments-indentation: disable
+  indentation:
+    spaces: consistent
+    indent-sequences: true
+    check-multi-line-strings: false

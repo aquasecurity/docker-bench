@@ -1012,7 +1012,7 @@ groups:
       - flag: "permissions"
         compare:
           op: bitmask
-          value: "644"
+          value: "660"
         set: true
     remediation: |
       You should execute the following command:

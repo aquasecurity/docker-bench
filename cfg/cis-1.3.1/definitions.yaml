@@ -1,41 +1,16 @@
 ---
 controls:
-id: "18.09"
+id: "20.04"
 description: "CIS Docker Community Edition Benchmark"
 groups:
 - id: 1
   description: "Host Configuration"
-  checks:
+  checks:    
 - id: 1.1
-  description: "General Configuration"
-  checks:
-  - id: 1.1.1
-    description: "Ensure the container host has been Hardened (Not Scored)"  
-    type: manual 
-    audit: |
-            Ensure that the host specific security guidelines are followed.
-            Ask the system administrators which security benchmark the current 
-            host system should currently be compliant with and check that security
-            standards associated with this standard are currently in place.
-    remediation: |
-      You may consider various CIS Security Benchmarks for your container host. 
-      If you have other security guidelines or regulatory requirements 
-      to adhere to, please follow them as suitable in your environment. 
-    scored: false
-  - id: 1.1.2
-    description: "Ensure that the version of Docker is up to date (Not Scored)"  
-    type: manual
-    audit: "docker version"
-    remediation: |
-      You should monitor versions of Docker releases and make sure
-      your software is updated as required.
-    scored: false
-    
-- id: 1.2
   description: "Linux Hosts Specific Configuration"
   checks:
-  - id: 1.2.1
-    description: "Ensure a separate partition for containers has been created (Scored)"
+  - id: 1.1.1
+    description: "Ensure a separate partition for containers has been created (Automated)"
     audit: "grep '$docker-storage\\s' /proc/mounts"
     tests:
       test_items:
@@ -47,8 +22,8 @@ groups:
       you should use the Logical Volume Manager (LVM)
       within Linux to create a new partition.
     scored: true
-  - id: 1.2.2
-    description: "Ensure only trusted users are allowed to control Docker daemon (Scored)"
+  - id: 1.1.2
+    description: "Ensure only trusted users are allowed to control Docker daemon (Automated)"
     audit: "getent group docker"
     type: manual
     remediation: |
@@ -56,24 +31,40 @@ groups:
       Additionally, you should not create a mapping of sensitive directories from the host to container volumes."
     scored: true
 
-  - id: 1.2.3
-    description: "Ensure auditing is configured for the docker daemon (Scored)"
+  - id: 1.1.3
+    description: "Ensure auditing is configured for the docker daemon (Automated)"
     audit: "auditctl -l | grep /usr/bin/dockerd"
     tests:
       test_items:
       - flag: "/usr/bin/dockerd"
         set: true
     remediation: |
-      You should add rules for the Docker daemon. For example: 
-      Add the line below to the 
-      /etc/audit/audit.rules file: 
+      You should add rules for the Docker daemon. 
+      For example: 
+      Add the line below to the /etc/audit/audit.rules file: 
       -w /usr/bin/dockerd -k docker
-      Then, restart the audit daemon using the following command service auditd restart"
+      Then, restart the audit daemon using the following command 
+      systemctl restart auditd
+    scored: true
+  
+  - id: 1.1.4
+    description: "Ensure auditing is configured for Docker files and directories - /run/containerd (Automated)"
+    audit: "auditctl -l | grep /run/containerd"
+    tests:
+      test_items:
+      - flag: "/run/containerd"
+        set: true
+    remediation: |
+      You should add a rule for the $docker-storage directory. 
+      For example, 
+      Add the line as below to the /etc/audit/audit.rules file:
+      -a exit,always -F path=/run/containerd -F perm=war -k docker
+      Then restart the audit daemon. For example, 
+      systemctl restart auditd
     scored: true
 
-  - id: 1.2.4
-    description: "Ensure auditing is configured for Docker files and directories - 
-    $docker-storage (Scored)"
+  - id: 1.1.5
+    description: "Ensure auditing is configured for Docker files and directories - $docker-storage (Automated)"
     audit: "auditctl -l | grep $docker-storage"
     tests:
       test_items:
@@ -81,15 +72,15 @@ groups:
         set: true
     remediation: |
       You should add a rule for the $docker-storage directory. 
-      For example, Add the line as below to the /etc/audit/audit.rules file:
-      -w $docker-storage -k docker
+      For example, 
+      Add the line as below to the /etc/audit/audit.rules file:
+      -a exit,always -F path=$docker-storage -F perm=war -k docker
       Then restart the audit daemon. For example, 
-      service auditd restart"
+      systemctl restart auditd
     scored: true
 
-  - id: 1.2.5
-    description: "Ensure auditing is configured for Docker files and directories -
-    /etc/docker (Scored)"
+  - id: 1.1.6
+    description: "Ensure auditing is configured for Docker files and directories - /etc/docker (Automated)"
     audit: "auditctl -l | grep /etc/docker"
     tests:
       test_items:
@@ -97,61 +88,126 @@ groups:
         set: true
     remediation: |
       You should add a rule for the /etc/docker directory.
-      For example: Add the line below to the /etc/audit/audit.rules file:
+      For example: 
+      Add the line below to the /etc/audit/audit.rules file:
       -w /etc/docker -k docker
       Then restart the audit daemon. For example: 
-      service auditd restart"
+      systemctl restart auditd
     scored: true
 
-  - id: 1.2.6
-    description: "Ensure auditing is configured for Docker files and directories -
-    docker.service (Scored)"
-    audit: "systemctl show -p FragmentPath docker.service | awk -F \"=\" '{print $2}' |xargs -I % test -f % && auditctl -l | grep `systemctl show -p FragmentPath docker.service | awk -F \"=\" '{print $2}'`"
+  - id: 1.1.7
+    description: "Ensure auditing is configured for Docker files and directories - docker.service (Automated)"
+    audit: |
+      test_file=$(systemctl show -p FragmentPath docker.service | awk -F "=" '{print $2}')
+      if test -f "$test_file"; then
+        auditctl -l | grep $test_file
+      fi
     tests:
       test_items:
       - flag: "docker.service"
         set: true
     remediation: |
       If the file exists, a rule for it should be added. 
-      For example: Add the line as below in /etc/audit/audit.rules file:
+      For example: 
+      Add the line as below in /etc/audit/audit.rules file:
       -w /usr/lib/systemd/system/docker.service -k docker
-      Then restart the audit daemon. For example:
-      service auditd restart
+      Then restart the audit daemon. 
+      For example:
+      systemctl restart auditd
     scored: true
-
-  - id: 1.2.7
-    description: "Ensure auditing is configured for Docker files and directories -
-    docker.socket (Scored)"
-    audit: "systemctl show -p FragmentPath docker.socket | awk -F \"=\" '{print $2}' |xargs -I % test -f % && auditctl -l | grep `systemctl show -p FragmentPath docker.socket | awk -F \"=\" '{print $2}'`"
+  
+  - id: 1.1.8
+    description: "Ensure auditing is configured for Docker files and directories - containerd.sock (Automated)"
+    audit: |
+      test_file=$(grep 'containerd.sock' /etc/containerd/config.toml | awk -F "\"" '{print $2}')
+      if test -S "$test_file"; then
+        auditctl -l | grep $test_file
+      fi
     tests:
       test_items:
-      - flag: "docker.socket"
+      - flag: "containerd.sock"
         set: true
     remediation: |
       If the file exists, you should add a rule for it. 
-      For example: Add the line below to the /etc/audit/audit.rules file:
-      -w /usr/lib/systemd/system/docker.socket -k docker
-      Then restart the audit daemon. For example:
-      service auditd restart"
+      For example: 
+      Add the line below to the /etc/audit/audit.rules file:
+      -w /run/containerd/containerd.sock -k docker
+      Then restart the audit daemon. 
+      For example:
+      systemctl restart auditd
     scored: true
 
-  - id: 1.2.8
-    description: "Ensure auditing is configured for Docker files and directories -
-    /etc/default/docker (Scored)"
+  - id: 1.1.9
+    description: "Ensure auditing is configured for Docker files and directories - docker.socket (Automated)"
+    audit: |
+      socket_file=$(grep '^ListenStream' $(systemctl show -p FragmentPath docker.socket | awk -F"=" '{print $2}')| awk -F "=" '{print $2}')
+      if test -S "$socket_file"; then
+        auditctl -l | grep $socket_file
+      fi
+    tests:
+      test_items:
+      - flag: "docker.sock"
+        set: true
+    remediation: |
+      If the file exists, you should add a rule for it. 
+      For example: 
+      Add the line below to the /etc/audit/audit.rules file:
+      -w $socket_file -k docker
+      Then restart the audit daemon. 
+      For example:
+      systemctl restart auditd
+    scored: true
+
+  - id: 1.1.10
+    description: "Ensure auditing is configured for Docker files and directories - /etc/default/docker (Automated)"
     audit: "auditctl -l | grep /etc/default/docker"
     tests:
       test_items:
       - flag: "/etc/default/docker"
         set: true
     remediation: |
-      You should add a rule for the /etc/default/docker file. 
-      For example: Add the line below to the /etc/audit/audit.rules file:
+      You should add a rule for the /etc/default/docker directory.
+      For example: 
+      Add the line below to the /etc/audit/audit.rules file:
       -w /etc/default/docker -k docker
       Then restart the audit daemon. For example: 
-      service auditd restart
+      systemctl restart auditd
     scored: true
-  - id: 1.2.9
-    description: "Ensure auditing is configured for Docker files and directories - /etc/sysconfig/docker (Scored)"
+
+  - id: 1.1.11
+    description: "Ensure auditing is configured for Docker files and directories - $docker-config-file (Automated)"
+    audit: "auditctl -l | grep $docker-config-file"
+    tests:
+      test_items:
+      - flag: "$docker-config-file"
+        set: true
+    remediation: |
+      You should add a rule for the $docker-config-file directory.
+      For example: 
+      Add the line below to the /etc/audit/audit.rules file:
+      -w $docker-config-file -k docker
+      Then restart the audit daemon. For example: 
+      systemctl restart auditd
+    scored: true
+  
+  - id: 1.1.12
+    description: "Ensure auditing is configured for Docker files and directories - /etc/containerd/config.toml (Automated)"
+    audit: "auditctl -l | grep /etc/containerd/config.toml"
+    tests:
+      test_items:
+      - flag: "/etc/containerd/config.toml"
+        set: true
+    remediation: |
+      You should add a rule for the /etc/containerd/config.toml directory.
+      For example: 
+      Add the line below to the /etc/audit/audit.rules file:
+      -w /etc/containerd/config.toml -k docker
+      Then restart the audit daemon. For example: 
+      systemctl restart auditd
+    scored: true
+
+  - id: 1.1.13
+    description: "Ensure auditing is configured for Docker files and directories - /etc/sysconfig/docker (Automated)"
     audit: "auditctl -l | grep /etc/sysconfig/docker"
     tests:
       test_items:
@@ -164,27 +220,9 @@ groups:
       Then restart the audit daemon. For example: 
       service auditd restart
     scored: true
-  - id: 1.2.10
-    description: "Ensure auditing is configured for Docker files and directories -
-    /etc/docker/daemon.json (Scored)"
-    audit: "auditctl -l | grep /etc/docker/daemon.json"
-    tests:
-      test_items:
-      - flag: "/etc/docker/daemon.json"
-        set: true
-    remediation: |
-      You should add a rule for the /etc/docker/daemon.json file. 
-      For example: 
-      Add the line below to the /etc/audit/audit.rules file:
-      -w /etc/docker/daemon.json -k docker
-      Then restart the audit daemon. 
-      For example: 
-      service auditd restart
-    scored: true
-
-  - id: 1.2.11
-    description: "Ensure auditing is configured for Docker files and directories -
-    /usr/bin/docker-containerd (Scored)"
+  
+  - id: 1.1.14
+    description: "Ensure auditing is configured for Docker files and directories - /usr/bin/containerd (Automated)"
     audit: "auditctl -l | grep /usr/bin/containerd"
     tests:
       test_items:
@@ -200,30 +238,112 @@ groups:
       service auditd restart
     scored: true
 
-  - id: 1.2.12
-    description: "Ensure auditing is configured for Docker files and directories -
-    /usr/sbin/runc (Scored)"
-    audit: "auditctl -l | grep /usr/sbin/runc"
+  - id: 1.1.15
+    description: "Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim (Automated)"
+    audit: "auditctl -l | grep /usr/bin/containerd-shim"
     tests:
       test_items:
-      - flag: "/usr/sbin/runc"
+      - flag: "/usr/bin/containerd-shim"
         set: true
     remediation: |
-      You should add a rule for /usr/sbin/runc file. 
-      For example:
-      Add the line below to the /etc/audit/audit.rules file: 
-      -w /usr/sbin/runc -k docker
+      You should add a rule for the /usr/bin/containerd-shim file. 
+      For example: 
+      Add the line below to the /etc/audit/audit.rules file:
+      -w /usr/bin/containerd-shim -k docker
+      Then restart the audit daemon. 
+      For example: 
+      service auditd restart
+    scored: true
+  
+  - id: 1.1.16
+    description: "Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v1 (Automated)"
+    audit: "auditctl -l | grep /usr/bin/containerd-shim-runc-v1"
+    tests:
+      test_items:
+      - flag: "/usr/bin/containerd-shim-runc-v1"
+        set: true
+    remediation: |
+      You should add a rule for the /usr/bin/containerd-shim-runc-v1 file. 
+      For example: 
+      Add the line below to the /etc/audit/audit.rules file:
+      -w /usr/bin/containerd-shim-runc-v1 -k docker
       Then restart the audit daemon. 
       For example: 
       service auditd restart
     scored: true
 
+  - id: 1.1.17
+    description: "Ensure auditing is configured for Docker files and directories - /usr/bin/containerd-shim-runc-v2 (Automated)"
+    audit: "auditctl -l | grep /usr/bin/containerd-shim-runc-v2"
+    tests:
+      test_items:
+      - flag: "/usr/bin/containerd-shim-runc-v2"
+        set: true
+    remediation: |
+      You should add a rule for the /usr/bin/containerd-shim-runc-v2 file. 
+      For example: 
+      Add the line below to the /etc/audit/audit.rules file:
+      -w /usr/bin/containerd-shim-runc-v2 -k docker
+      Then restart the audit daemon. 
+      For example: 
+      service auditd restart
+    scored: true
+
+  - id: 1.1.18
+    description: "Ensure auditing is configured for Docker files and directories - /usr/bin/runc (Automated)"
+    audit: "auditctl -l | grep /usr/bin/runc"
+    tests:
+      test_items:
+      - flag: "/usr/bin/runc"
+        set: true
+    remediation: |
+      You should add a rule for /usr/bin/runc file. 
+      For example:
+      Add the line below to the /etc/audit/audit.rules file: 
+      -w /usr/bin/runc -k docker
+      Then restart the audit daemon. 
+      For example: 
+      service auditd restart
+    scored: true
+
+- id: 1.2
+  description: "General Configuration"
+  checks:
+  - id: 1.2.1
+    description: "Ensure the container host has been Hardened (Manual)"  
+    type: manual 
+    audit: |
+            Ensure that the host specific security guidelines are followed.
+            Ask the system administrators which security benchmark the current 
+            host system should currently be compliant with and check that security
+            standards associated with this standard are currently in place.
+    remediation: |
+      You may consider various CIS Security Benchmarks for your container host. 
+      If you have other security guidelines or regulatory requirements 
+      to adhere to, please follow them as suitable in your environment. 
+    scored: false
+  - id: 1.2.2
+    description: "Ensure that the version of Docker is up to date (Manual)"  
+    type: manual
+    audit: "docker version"
+    remediation: |
+      You should monitor versions of Docker releases and make sure
+      your software is updated as required.
+    scored: false
+  
 - id: 2
   description: "Docker daemon configuration"
   checks:
   - id: 2.1
-    description: "Ensure network traffic is restricted between containers on the
-    default bridge (Scored)"
+    description: "Run the Docker daemon as a non-root user, if possible (Manual)"
+    audit: "ps -fe | grep 'dockerd'"
+    type: manual
+    remediation: |
+      Follow the current Docker documentation on how to install the Docker daemon as a non-root user.
+    scored: true
+
+  - id: 2.2
+    description: "Ensure network traffic is restricted between containers on the default bridge (Automated)"
     audit: "docker network ls --quiet | xargs docker network inspect --format '{{ .Name }}: {{ .Options }}'"
     tests:
       test_items:
@@ -236,11 +356,20 @@ groups:
       Alernatively, run the docker daemon directly and pass --icc=false as an argument. 
       For Example, 
       dockerd --icc=false
+      Alternatively, you can follow the Docker documentation and create a custom network and 
+      only join containers that need to communicate to that custom network. The --icc 
+      parameter only applies to the default docker bridge, if custom networks are used then the 
+      approach of segmenting networks should be adopted instead. 
+      In order for this control to be fully effective, all containers connected to the docker0 bridge 
+      should drop the NET_RAW capability, otherwise a compromised container could use raw 
+      ethernet packets to communicate with other containers despite this restriction.
     scored: true
 
-  - id: 2.2.a
-    description: "Ensure the logging level is set to 'info' (Scored)"
-    audit: "ps -ef | grep dockerd"
+  - id: 2.3
+    description: "Ensure the logging level is set to 'info' (Automated)"
+    audit: |
+      ps -ef | grep dockerd
+      cat $docker-config-file 
     tests:
       bin_op: or
       test_items:
@@ -251,18 +380,6 @@ groups:
           op: eq
           value: "info"
         set: true
-    remediation: |
-      Ensure that the Docker daemon configuration file has the following configuration included
-      "log-level": "info"
-      Alternatively, run the Docker daemon as below:
-      dockerd --log-level="info"
-    scored: true
-
-  - id: 2.2.b
-    description: "Ensure the logging level is set to 'info' (Scored)"
-    audit: "grep log-level /etc/docker/daemon.json"
-    tests:
-      test_items:
       - flag: "\"log-level\""
         compare:
           op: eq
@@ -275,9 +392,11 @@ groups:
       dockerd --log-level="info"
     scored: true
 
-  - id: 2.3
-    description: "Ensure Docker is allowed to make changes to iptables (Scored)"
-    audit: "ps -ef | grep dockerd"
+  - id: 2.4
+    description: "Ensure Docker is allowed to make changes to iptables (Automated)"
+    audit: |
+      ps -ef | grep dockerd
+      cat $docker-config-file
     tests:
       bin_op: or
       test_items:
@@ -288,22 +407,27 @@ groups:
           op: eq
           value: true
         set: true
+      - flag: "\"iptables\""
+        compare:
+          op: eq
+          value: "true"
+        set: true
     remediation: |
       Do not run the Docker daemon with --iptables=false parameter. For example, do not
       start the Docker daemon as below:
       dockerd --iptables=false
     scored: true
 
-  - id: 2.4
-    description: "Ensure insecure registries are not used (Scored)"
+  - id: 2.5
+    description: "Ensure insecure registries are not used (Automated)"
     audit: "docker info --format 'Insecure Registries: {{.RegistryConfig.InsecureRegistryCIDRs}}'"
     type: manual
     remediation: |
       You should ensure that no insecure registries are in use.
     scored: true
 
-  - id: 2.5
-    description: "Ensure aufs storage driver is not used (Scored)"
+  - id: 2.6
+    description: "Ensure aufs storage driver is not used (Automated)"
     audit: "docker info --format 'Storage Driver: {{ .Driver }}'"
     tests:
       test_items:
@@ -315,46 +439,30 @@ groups:
       dockerd --storage-driver aufs
     scored: true
 
-  - id: 2.6.a
-    description: "Ensure TLS authentication for Docker daemon is configured (Scored)"
-    audit: "ps -ef | grep dockerd"
+  - id: 2.7
+    description: "Ensure TLS authentication for Docker daemon is configured (Automated)"
+    audit: |
+      ps -ef | grep dockerd
+      grep tls $docker-config-file | tr -d ","
     tests:
       bin_op: and
       test_items:
-      - flag: "--tlsverify"
-        set: true
-      - flag: "--tlscacert"
-        set: true
-      - flag: "--tlscert"
-        set: true
-      - flag: "--tlskey"
-        set: true
-    remediation: |
-      Follow the steps mentioned in the Docker documentation or other references.
-    scored: true
-    
-  - id: 2.6.b
-    description: "Ensure TLS authentication for Docker daemon is configured (Scored)"
-    audit: 'grep tls /etc/docker/daemon.json | tr -d ","'
-    tests:
-      bin_op: and
-      test_items:
-      - flag: '"tlsverify"'
+      - flag: "tlsverify"
         compare:
           op: eq
           value: true
         set: true
-      - flag: '"tlscacert"'
+      - flag: "tlscacert"
         compare:
           op: noteq
           value: '""'
         set: true
-      - flag: '"tlscert"'
+      - flag: "tlscert"
         compare:
           op: noteq
           value: '""'
         set: true
-      - flag: '"tlskey"'
+      - flag: "tlskey"
         compare:
           op: noteq
           value: '""'
@@ -363,8 +471,8 @@ groups:
       Follow the steps mentioned in the Docker documentation or other references.
     scored: true
 
-  - id: 2.7
-    description: "Ensure the default ulimit is configured appropriately (Not Scored)"
+  - id: 2.8
+    description: "Ensure the default ulimit is configured appropriately (Manual))"
     audit: "ps -ef | grep dockerd"
     type: manual
     tests:
@@ -378,8 +486,8 @@ groups:
       dockerd --default-ulimit nproc=1024:2048 --default-ulimit nofile=100:200
     scored: false
 
-  - id: 2.8
-    description: "Enable user namespace support (Scored)"
+  - id: 2.9
+    description: "Enable user namespace support (Automated)"
     audit: "docker info --format '{{ .SecurityOptions }}'"
     tests:
       test_items:
@@ -400,15 +508,17 @@ groups:
       dockerd --userns-remap=default
     scored: true
 
-  - id: 2.9.a
-    description: "Ensure the default cgroup usage has been confirmed (Scored)"
-    audit: "ps -ef | grep dockerd"
+  - id: 2.10
+    description: "Ensure the default cgroup usage has been confirmed (Automated)"
+    audit: |
+      ps -ef | grep dockerd
+      grep cgroup-parent $docker-config-file
     tests:
       bin_op: or
       test_items:
-      - flag: "--cgroup-parent"
+      - flag: "cgroup-parent"
         set: false
-      - flag: "--cgroup-parent"
+      - flag: "cgroup-parent"
         compare:
           op: nothave
           value: "/docker"
@@ -421,47 +531,17 @@ groups:
       dockerd --cgroup-parent=/foobar
     scored: true
   
-  - id: 2.9.b
-    description: "Ensure the default cgroup usage has been confirmed (Scored)"
-    audit: "grep cgroup-parent /etc/docker/daemon.json"
+  - id: 2.11
+    description: "Ensure base device size is not changed until needed (Automated)"
+    audit: |
+      ps -ef | grep dockerd
+      grep storage-opt $docker-config-file
     tests:
       bin_op: or
       test_items:
-      - flag: ""
-        compare:
-          op: eq
-          value: ""
+      - flag: "storage-opt"
         set: false
-      - flag: '"cgroup-parent"'
-        compare:
-          op: nothave
-          value: "/docker"
-        set: true
-    remediation: |
-      The default setting is in line with good security practice and can be left in situ. If you wish 
-      to specifically set a non-default cgroup, pass the --cgroup-parent parameter to the Docker 
-      daemon when starting it. 
-      For example, 
-      dockerd --cgroup-parent=/foobar
-    scored: true
-
-  - id: 2.10.a
-    description: "Ensure base device size is not changed until needed (Scored)"
-    audit: "ps -ef | grep dockerd"
-    tests:
-      test_items:
-      - flag: "--storage-opt"
-        set: false
-    remediation: |
-      Do not set --storage-opt dm.basesize until needed.
-    scored: true
-  
-  - id: 2.10.b
-    description: "Ensure base device size is not changed until needed (Scored)"
-    audit: "grep storage-opt /etc/docker/daemon.json"
-    tests:
-      test_items:
-      - flag: '"storage-opt"'
+      - flag: "storage-opt"
         compare:
           op: eq
           value: ""
@@ -470,26 +550,17 @@ groups:
       Do not set --storage-opt dm.basesize until needed.
     scored: true
 
-  - id: 2.11.a
-    description: "Ensure that authorization for Docker client commands is enabled (Scored)"
-    audit: "ps -ef | grep dockerd"
+  - id: 2.12
+    description: "Ensure that authorization for Docker client commands is enabled (Automated)"
+    audit: |
+      ps -ef | grep dockerd
+      grep authorization-plugin $docker-config-file | tr -d ","
     tests:
+      bin_op: or
       test_items:
       - flag: "--authorization-plugin"
         set: true
-    remediation: |
-      Step 1: Install/Create an authorization plugin.
-      Step 2: Configure the authorization policy as desired.
-      Step 3: Start the docker daemon as below:
-      dockerd --authorization-plugin=<PLUGIN_ID>
-    scored: true
-
-  - id: 2.11.b
-    description: "Ensure that authorization for Docker client commands is enabled (Scored)"
-    audit: 'grep authorization-plugin /etc/docker/daemon.json | tr -d ","'
-    tests:
-      test_items:
-      - flag: '"authorization-plugins"'
+      - flag: 'authorization-plugins'
         compare:
           op: noteq
           value: "[]"
@@ -501,12 +572,20 @@ groups:
       dockerd --authorization-plugin=<PLUGIN_ID>
     scored: true
 
-  - id: 2.12
-    description: "Ensure centralized and remote logging is configured (Scored)"
-    audit: "ps -ef | grep dockerd"
+  - id: 2.13
+    description: "Ensure centralized and remote logging is configured (Automated)"
+    audit: |
+      ps -ef | grep dockerd
+      grep log-driver $docker-config-file | tr -d ","
     tests:
+      bin_op: or
       test_items:
       - flag: "--log-driver"
+        set: true
+      - flag: "log-driver"
+        compare:
+          op: noteq
+          value: '""'
         set: true
     remediation: |
       Step 1: Setup the desired log driver by following its documentation.
@@ -514,57 +593,56 @@ groups:
       For example,
       dockerd --log-driver=syslog --log-opt syslog-address=tcp://192.xxx.xxx.xxx
     scored: true
-
-  - id: 2.13.a
-    description: "Ensure live restore is Enabled (Scored)"
-    audit: "ps -ef | grep dockerd"
+  
+  - id: 2.14
+    description: "Ensure containers are restricted from acquiring new privileges (Automated)"
+    audit: |
+      ps -ef | grep dockerd
+      grep no-new-privileges $docker-config-file | tr -d ","
     tests:
       test_items:
-      - flag: "--live-restore"
-        set: true
-    remediation: |
-      Run the docker in daemon mode and pass --live-restore as an argument.
-      For Example,
-      dockerd --live-restore
-    scored: true
-
-  - id: 2.13.b
-    description: "Ensure live restore is Enabled (Scored)"
-    audit: 'grep live-restore /etc/docker/daemon.json | tr -d ","'
-    tests:
-      test_items:
-      - flag: '"live-restore"'
+      - flag: "no-new-privileges"
         compare:
           op: eq
           value: "true"
         set: true
     remediation: |
+      You should run the Docker daemon as below:
+      dockerd --no-new-privileges
+    scored: true
+  
+  - id: 2.15
+    description: "Ensure live restore is Enabled (Automated)"
+    audit: |
+      docker info --format 'LiveRestoreEnabled={{ .LiveRestoreEnabled }}'
+      grep live-restore $docker-config-file | tr -d ","
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "LiveRestoreEnabled"
+        compare:
+          op: eq
+          value: true
+        set: true
+      - flag: "live-restore"
+        compare:
+          op: eq
+          value: true
+        set: true
+    remediation: |
       Run the docker in daemon mode and pass --live-restore as an argument.
       For Example,
       dockerd --live-restore
     scored: true
 
-  - id: 2.14.a
-    description: "Ensure Userland Proxy is Disabled (Scored)"
-    audit: "ps -ef | grep dockerd"
+  - id: 2.16
+    description: "Ensure Userland Proxy is Disabled (Automated)"
+    audit: |
+      ps -ef | grep dockerd
+      grep userland-proxy $docker-config-file | tr -d ","
     tests:
       test_items:
-      - flag: "--userland-proxy"
-        compare:
-          op: eq
-          value: "false"
-        set: true
-    remediation: |
-      You should run the Docker daemon as below:
-      dockerd --userland-proxy=false
-    scored: true
-  
-  - id: 2.14.b
-    description: "Disable Userland Proxy (Scored)"
-    audit: 'grep userland-proxy /etc/docker/daemon.json | tr -d ","'
-    tests:
-      test_items:
-      - flag: '"userland-proxy"'
+      - flag: "userland-proxy"
         compare:
           op: eq
           value: "false"
@@ -574,10 +652,10 @@ groups:
       dockerd --userland-proxy=false
     scored: true
 
-  - id: 2.15
-    description: "Ensure that a daemon-wide custom seccomp profile is applied if appropriate
-    (Not Scored)"
+  - id: 2.17
+    description: "Ensure that a daemon-wide custom seccomp profile is applied if appropriate (Manual)"
     audit: "docker info --format '{{ .SecurityOptions }}'"
+    type: manual
     tests:
       test_items:
       - flag: "profile"
@@ -593,63 +671,30 @@ groups:
       dockerd --seccomp-profile </path/to/seccomp/profile>
     scored: false
 
-  - id: 2.16
-    description: "Ensure that experimental features are not implemented in production (Scored)"
-    audit: "docker version --format '{{ .Server.Experimental }}'"
+  - id: 2.18
+    description: "Ensure that experimental features are not implemented in production (Automated)"
+    audit: "docker version --format 'experimental={{ .Server.Experimental }}'"
     tests:
       test_items:
-      - flag: "false"
+      - flag: "experimental"
         compare:
           op: eq
-          value: "false"
+          value: false
         set: true
     remediation: |
       You should not pass --experimental as a runtime parameter to the Docker daemon on
       production systems.
     scored: true
 
-  - id: 2.17.a
-    description: "Ensure containers are restricted from acquiring new privileges (Scored)"
-    audit: "ps -ef | grep dockerd"
-    tests:
-      test_items:
-      - flag: "--no-new-privileges"
-        compare:
-          op: eq
-          value: "true"
-        set: true
-    remediation: |
-      You should run the Docker daemon as below:
-      dockerd --no-new-privileges
-    scored: true
-    
-  - id: 2.17.b
-    description: "Ensure containers are restricted from acquiring new privileges (Scored)"
-    audit: 'grep no-new-privileges /etc/docker/daemon.json | tr -d ","'
-    tests:
-      test_items:
-      - flag: '"no-new-privileges"'
-        compare:
-          op: eq
-          value: "true"
-        set: true
-    remediation: |
-      For example, you should start your container as below:
-      docker run --rm -it --security-opt=no-new-privileges ubuntu bash
-    scored: true
-    
 - id: 3
   description: "Docker daemon configuration files"
   checks:
   - id: 3.1
-    description: "Ensure that docker.service file ownership is set to root:root (Scored)"
-    audit: systemctl show -p FragmentPath docker.service | cut -d= -f2 | xargs stat -c %U:%G
+    description: "Ensure that docker.service file ownership is set to root:root (Automated)"
+    audit: systemctl show -p FragmentPath docker.service | cut -d= -f2 | xargs stat -c "%N %U:%G"
     tests:
       test_items:
       - flag: "root:root"
-        compare:
-          op: eq
-          value: "root:root"
         set: true
     remediation: |
       Step 1: Find out the file location:
@@ -662,9 +707,8 @@ groups:
     scored: true
 
   - id: 3.2
-    description: "Ensure that docker.service file permissions are appropriately set
-    (Scored)"
-    audit: systemctl show -p FragmentPath docker.service | cut -d= -f2 | xargs stat -c "permissions=%a"
+    description: "Ensure that docker.service file permissions are appropriately set (Automated)"
+    audit: systemctl show -p FragmentPath docker.service | cut -d= -f2 | xargs stat -c "%N permissions=%a"
     tests:
       test_items:
       - flag: "permissions"
@@ -682,14 +726,11 @@ groups:
     scored: true
 
   - id: 3.3
-    description: "Ensure that docker.socket file ownership is set to root:root (Scored)"
-    audit: systemctl show -p FragmentPath docker.socket | cut -d= -f2 | xargs stat -c %U:%G
+    description: "Ensure that docker.socket file ownership is set to root:root (Automated)"
+    audit: systemctl show -p FragmentPath docker.socket | cut -d= -f2 | xargs stat -c "%N %U:%G"
     tests:
       test_items:
       - flag: "root:root"
-        compare:
-          op: eq
-          value: "root:root"
         set: true
     remediation: |
       Step 1: Find out the file location:
@@ -702,9 +743,8 @@ groups:
     scored: true
 
   - id: 3.4
-    description: "Ensure that docker.socket file permissions are set to 644 or more
-    restrictive (Scored)"
-    audit: systemctl show -p FragmentPath docker.socket | cut -d= -f2 | xargs stat -c "permissions=%a"
+    description: "Ensure that docker.socket file permissions are set to 644 or more restrictive (Automated)"
+    audit: systemctl show -p FragmentPath docker.socket | cut -d= -f2 | xargs stat -c "%N permissions=%a"
     tests:
       test_items:
       - flag: "permissions"
@@ -723,15 +763,11 @@ groups:
     scored: true
 
   - id: 3.5
-    description: "Ensure that /etc/docker directory ownership is set to root:root
-    (Scored)"
-    audit: stat -c %U:%G /etc/docker
+    description: "Ensure that /etc/docker directory ownership is set to root:root (Automated)"
+    audit: stat -c "%N %U:%G" /etc/docker
     tests:
       test_items:
       - flag: "root:root"
-        compare:
-          op: eq
-          value: "root:root"
         set: true
     remediation: |
       To resolve this issue you should run the following command:
@@ -740,9 +776,8 @@ groups:
     scored: true
 
   - id: 3.6
-    description: "Ensure that /etc/docker directory permissions are set to 755 or more
-    restrictive (Scored)"
-    audit: stat -c "permissions=%a" /etc/docker
+    description: "Ensure that /etc/docker directory permissions are set to 755 or more restrictive (Automated)"
+    audit: stat -c "%N permissions=%a" /etc/docker
     tests:
       test_items:
       - flag: "permissions"
@@ -757,9 +792,9 @@ groups:
     scored: true
 
   - id: 3.7
-    description: "Ensure that registry certificate file ownership is set to root:root
-    (Scored)"
-    audit: stat -c %U:%G /etc/docker/certs.d/*
+    description: "Ensure that registry certificate file ownership is set to root:root (Automated)"
+    audit: stat -c "%N %U:%G" /etc/docker/certs.d/*
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "root:root"
@@ -772,9 +807,9 @@ groups:
     scored: true
 
   - id: 3.8
-    description: "Ensure that registry certificate file permissions are set to 444 or
-    more restrictive (Scored)"
-    audit: stat -c "permissions=%a" /etc/docker/certs.d/*
+    description: "Ensure that registry certificate file permissions are set to 444 or more restrictive (Automated)"
+    audit: stat -c "%N permissions=%a" /etc/docker/certs.d/*
+    use_multiple_values: true
     tests:
       test_items:
       - flag: "permissions"
@@ -789,8 +824,7 @@ groups:
     scored: true
 
   - id: 3.9
-    description: "Ensure that TLS CA certificate file ownership is set to root:root
-    (Scored)"
+    description: "Ensure that TLS CA certificate file ownership is set to root:root (Automated)"
     type: manual
     remediation: |
       You should execute the following command:
@@ -799,8 +833,7 @@ groups:
     scored: true
 
   - id: 3.10
-    description: "Ensure that TLS CA certificate file permissions are set to 444 or
-    more restrictive (Scored)"
+    description: "Ensure that TLS CA certificate file permissions are set to 444 or more restrictive (Automated)"
     type: manual
     remediation: |
       You should execute the following command: chmod 444 <path to TLS CA certificate file>
@@ -809,8 +842,7 @@ groups:
     scored: true
 
   - id: 3.11
-    description: "Ensure that Docker server certificate file ownership is set to
-    root:root (Scored)"
+    description: "Ensure that Docker server certificate file ownership is set to root:root (Automated)"
     type: manual
     remediation: |
       You should run the following command:
@@ -820,8 +852,7 @@ groups:
     scored: true
 
   - id: 3.12
-    description: "Ensure that Docker server certificate file permissions are set to 444
-    or more restrictive (Scored)"
+    description: "Ensure that Docker server certificate file permissions are set to 444 or more restrictive (Automated)"
     type: manual
     remediation: |
       You should execute the command below:
@@ -830,8 +861,7 @@ groups:
     scored: true
 
   - id: 3.13
-    description: "Ensure that Docker server certificate key file ownership is set to
-    root:root (Scored)"
+    description: "Ensure that Docker server certificate key file ownership is set to root:root (Automated)"
     type: manual
     remediation: |
       You should execute the following command:
@@ -841,7 +871,7 @@ groups:
     scored: true
 
   - id: 3.14
-    description: "Ensure that the Docker server certificate key file permissions are set to 400 (Scored)"
+    description: "Ensure that the Docker server certificate key file permissions are set to 400 (Automated)"
     type: manual
     remediation: |
       You should execute the following command:
@@ -850,15 +880,11 @@ groups:
     scored: true
 
   - id: 3.15
-    description: "Ensure that Docker socket file ownership is set to root:docker
-    (Scored)"
-    audit: stat -c %U:%G /var/run/docker.sock
+    description: "Ensure that Docker socket file ownership is set to root:docker (Automated)"
+    audit: stat -c "%N %U:%G" /var/run/docker.sock
     tests:
       test_items:
       - flag: "root:docker"
-        compare:
-          op: eq
-          value: "root:docker"
         set: true
     remediation: |
       You should execute the following command:
@@ -868,9 +894,8 @@ groups:
     scored: true
 
   - id: 3.16
-    description: "Ensure that Docker socket file permissions are set to 660 or more
-    restrictive (Scored)"
-    audit: stat -c "permissions=%a" /var/run/docker.sock
+    description: "Ensure that Docker socket file permissions are set to 660 or more restrictive (Automated)"
+    audit: stat -c "%N permissions=%a" /var/run/docker.sock
     tests:
       test_items:
       - flag: "permissions"
@@ -885,27 +910,22 @@ groups:
     scored: true
 
   - id: 3.17
-    description: "Ensure that daemon.json file ownership is set to root:root (Scored)"
-    audit: /bin/sh -c "if [ -f /etc/docker/daemon.json ]; then stat -c %U:%G /etc/docker/daemon.json; fi"
+    description: "Ensure that daemon.json file ownership is set to root:root (Automated)"
+    audit: stat -c "%N %U:%G" $docker-config-file
     tests:
       test_items:
       - flag: "root:root"
-        compare:
-          op: eq
-          value: "root:root"
         set: true
     remediation: |
       You should execute the command below:
-      chown root:root /etc/docker/daemon.json
+      chown root:root $docker-config-file
       This sets the ownership and group-ownership for the file to root .
     scored: true
 
   - id: 3.18
-    description: "Ensure that daemon.json file permissions are set to 644 or more
-    restrictive (Scored)"
-    audit: /bin/sh -c "if [ -f /etc/docker/daemon.json ]; then stat -c "permissions=%a" /etc/docker/daemon.json; fi"
+    description: "Ensure that daemon.json file permissions are set to 644 or more restrictive (Automated)"
+    audit: stat -c "%N permissions=%a" $docker-config-file
     tests:
-      bin_op: or
       test_items:
       - flag: "permissions"
         compare:
@@ -914,45 +934,25 @@ groups:
         set: true
     remediation: |
       You should execute the command below
-      chmod 644 /etc/docker/daemon.json
+      chmod 644 $docker-config-file
       This sets the file permissions for this file to 644.
     scored: true
 
   - id: 3.19
-    description: "Ensure that /etc/default/docker file ownership is set to root:root
-    (Scored)"
-    audit: /bin/sh -c "if [ -f /etc/default/docker ]; then stat -c %U:%G /etc/default/docker; fi"
+    description: "Ensure that /etc/default/docker file ownership is set to root:root (Automated)"
+    audit: stat -c "%N %U:%G" /etc/default/docker
     tests:
       test_items:
       - flag: "root:root"
-        compare:
-          op: eq
-          value: "root:root"
         set: true
     remediation: |
       You should execute the following command
       chown root:root /etc/default/docker
-      This  sets the ownership and group-ownership for the file to root .
+      This sets the ownership and group-ownership for the file to root.
     scored: true
   - id: 3.20
-    description: "Ensure that the /etc/sysconfig/docker file ownership is set to root:root (Scored)"
-    audit: "/bin/sh -c \"if [ -f /etc/sysconfig/docker ]; then stat -c %U:%G /etc/sysconfig/docker; fi\""
-    tests:
-      test_items:
-      - flag: "root:root"
-        compare:
-          op: eq
-          value: "root:root"
-        set: true
-    remediation: |
-      You should execute the following command
-      chown root:root /etc/sysconfig/docker
-      This  sets the ownership and group-ownership for the file to root .
-    scored: true
-  - id: 3.21
-    description: "Ensure that /etc/sysconfig/docker file permissions are set to 644 or
-    more restrictive (Scored)"
-    audit: /bin/sh -c "if [ -f /etc/sysconfig/docker ]; then stat -c "permissions=%a" /etc/sysconfig/docker; fi"
+    description: "Ensure that /etc/sysconfig/docker file permissions are set to 644 or more restrictive (Automated)"
+    audit: stat -c "%N permissions=%a" /etc/sysconfig/docker
     tests:
       test_items:
       - flag: "permissions"
@@ -965,10 +965,21 @@ groups:
       chmod 644 /etc/sysconfig/docker
       This sets the file permissions for this file to 644.
     scored: true
+  - id: 3.21
+    description: "Ensure that the /etc/sysconfig/docker file ownership is set to root:root (Automated)"
+    audit: stat -c "%N %U:%G" /etc/sysconfig/docker
+    tests:
+      test_items:
+      - flag: "root:root"
+        set: true
+    remediation: |
+      You should execute the following command
+      chown root:root /etc/sysconfig/docker
+      This  sets the ownership and group-ownership for the file to root .
+    scored: true
   - id: 3.22
-    description: "Ensure that /etc/default/docker file permissions are set to 644 or
-    more restrictive (Scored)"
-    audit: /bin/sh -c "if [ -f /etc/default/docker ]; then stat -c "permissions=%a" /etc/default/docker; fi"
+    description: "Ensure that /etc/default/docker file permissions are set to 644 or more restrictive (Automated)"
+    audit: stat -c "%N permissions=%a" /etc/default/docker
     tests:
       test_items:
       - flag: "permissions"
@@ -981,12 +992,38 @@ groups:
       chmod 644 /etc/default/docker
       This sets the file permissions for this file to 644.
     scored: true
+  - id: 3.23
+    description: "Ensure that the Containerd socket file ownershi is set to root:root (Automated)"
+    audit: stat -c "%N %U:%G" /run/containerd/containerd.sock
+    tests:
+      test_items:
+      - flag: "root:root"
+        set: true
+    remediation: |
+      You should execute the following command
+      chown root:root /run/containerd/containerd.sock
+      This sets the ownership to root and group ownership to root for the default Containerd socket file.
+    scored: true
+  - id: 3.24
+    description: "Ensure that the Containerd socket file permissions are set to 660 or more restrictive (Automated)"
+    audit: stat -c "%N permissions=%a" /run/containerd/containerd.sock
+    tests:
+      test_items:
+      - flag: "permissions"
+        compare:
+          op: bitmask
+          value: "660"
+        set: true
+    remediation: |
+      You should execute the following command:
+      chmod 660 /run/containerd/containerd.sock
+      This sets the file permissions for this file to 660.
 
 - id: 4
   description: "Container Images and Build File Configuration"
   checks:
   - id: 4.1
-    description: "Ensure that a user for the container has been created (Scored)"
+    description: "Ensure that a user for the container has been created (Automated)"
     audit: "docker ps --quiet | xargs --max-args=1 -I{} docker exec {} cat /proc/1/status | grep '^Uid:' | awk '{print \"User=\"$3}'"
     use_multiple_values: true
     tests:
@@ -1030,7 +1067,7 @@ groups:
     scored: true
 
   - id: 4.2
-    description: "Ensure that containers use only trusted base images (Not Scored)"
+    description: "Ensure that containers use only trusted base images (Manual)"
     type: manual
     remediation: |
       The following procedures are useful for establishing trust for a specific image.
@@ -1041,7 +1078,7 @@ groups:
     scored: false
  
   - id: 4.3
-    description: "Ensure that unnecessary packages are not installed in the container (Not Scored)"
+    description: "Ensure that unnecessary packages are not installed in the container (Manual)"
     type: manual
     remediation: |
       You should not install anything within the container that is not required.
@@ -1053,8 +1090,7 @@ groups:
     scored: false
 
   - id: 4.4
-    description: "Ensure images are scanned and rebuilt to include security patches
-    (Not Scored)"
+    description: "Ensure images are scanned and rebuilt to include security patches (Manual)"
     type: manual
     remediation: |
       Images should be re-built ensuring that the latest version of the base images are used, to
@@ -1063,7 +1099,7 @@ groups:
     scored: false
 
   - id: 4.5
-    description: "Ensure Content trust for Docker is Enabled (Scored)"
+    description: "Ensure Content trust for Docker is Enabled (Automated)"
     audit: echo DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST
     tests:
       test_items:
@@ -1080,8 +1116,7 @@ groups:
     scored: true
 
   - id: 4.6
-    description: "Ensure HEALTHCHECK instructions have been added to the container
-    images (Scored)"
+    description: "Ensure HEALTHCHECK instructions have been added to the container images (Automated)"
     type: manual
     remediation: |
       You should follow the Docker documentation and rebuild your container images to include
@@ -1089,8 +1124,7 @@ groups:
     scored: true
 
   - id: 4.7
-    description: "Ensure update instructions are not use alone in the Dockerfile (Not
-    Scored)"
+    description: "Ensure update instructions are not use alone in the Dockerfile (Manual)"
     type: manual
     remediation: |
       You should use update instructions together with install instructions and version pinning
@@ -1101,7 +1135,7 @@ groups:
     scored: false
 
   - id: 4.8
-    description: "Ensure setuid and setgid permissions are removed (Not Scored)"
+    description: "Ensure setuid and setgid permissions are removed (Manual)"
     type: manual
     remediation: |
       You should allow setuid and setgid permissions only on executables which require them.
@@ -1111,14 +1145,14 @@ groups:
     scored: false
 
   - id: 4.9
-    description: "Ensure COPY is used instead of ADD in Dockerfile (Not Scored)"
+    description: "Ensure COPY is used instead of ADD in Dockerfile (Manual)"
     type: manual
     remediation: |
       You should use COPY rather than ADD instructions in Dockerfiles.
     scored: false
 
   - id: 4.10
-    description: "Ensure secrets are not stored in Dockerfiles (Not Scored)"
+    description: "Ensure secrets are not stored in Dockerfiles (Manual)"
     type: manual
     remediation: |
       Do not store any kind of secrets within Dockerfiles. Where secrets are required during the 
@@ -1127,7 +1161,7 @@ groups:
     scored: false
 
   - id: 4.11
-    description: "Ensure only verified packages are are Installed (Not Scored)"
+    description: "Ensure only verified packages are are Installed (Manual)"
     type: manual
     remediation: |
       You should use a secure package distribution mechanism of your choice to ensure the 
@@ -1138,7 +1172,7 @@ groups:
   description: "Container Runtime Configuration"
   checks:
   - id: 5.1
-    description: "Ensure that, if applicable, an AppArmor Profile is enabled (Scored)"
+    description: "Ensure that, if applicable, an AppArmor Profile is enabled (Automated)"
     type: manual
     remediation: |
       If AppArmor is applicable for your Linux OS, you should enable it.
@@ -1152,7 +1186,7 @@ groups:
     scored: true
 
   - id: 5.2
-    description: "Ensure that, if applicable, SELinux security options are set(Scored)"
+    description: "Ensure that, if applicable, SELinux security options are set(Automated)"
     type: manual
     remediation: |
       If SELinux is applicable for your Linux OS, you should use it.
@@ -1167,8 +1201,7 @@ groups:
     scored: true
 
   - id: 5.3
-    description: "Ensure that Linux Kernel capabilities are restricted within containers
-    (Scored)"
+    description: "Ensure that Linux Kernel capabilities are restricted within containers (Automated)"
     type: manual
     remediation: |
       You should execute the command below to add required capabilities:
@@ -1184,7 +1217,7 @@ groups:
     scored: true
 
   - id: 5.4
-    description: "Ensure that privileged containers are not used (Scored)"
+    description: "Ensure that privileged containers are not used (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Privileged={{ .HostConfig.Privileged }}'
     use_multiple_values: true
     tests:
@@ -1198,8 +1231,7 @@ groups:
     scored: true
 
   - id: 5.5
-    description: "Ensure sensitive host system directories are not mounted on
-    containers (Scored)"
+    description: "Ensure sensitive host system directories are not mounted on containers (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Volumes={{ .Mounts }}'
     use_multiple_values: true
     tests:
@@ -1226,7 +1258,7 @@ groups:
     scored: true
 
   - id: 5.6
-    description: "Ensure sshd is not run within containers (Scored)"
+    description: "Ensure sshd is not run within containers (Automated)"
     type: manual
     remediation: |
       Uninstall the SSH daemon from the container and use and use docker exec to enter a
@@ -1237,7 +1269,7 @@ groups:
     scored: true
 
   - id: 5.7
-    description: "Ensure privileged ports are not mapped within containers (Scored)"
+    description: "Ensure privileged ports are not mapped within containers (Automated)"
     type: manual
     remediation: |
       You should not map container ports to privileged host ports when starting a container. You
@@ -1246,7 +1278,7 @@ groups:
     scored: true
 
   - id: 5.8
-    description: "Ensure that only needed ports are open on the container (Not Scored)"
+    description: "Ensure that only needed ports are open on the container (Manual)"
     type: manual
     remediation: |
       You should ensure that the Dockerfile for each container image only exposes needed ports. 
@@ -1260,7 +1292,7 @@ groups:
     scored: false
 
   - id: 5.9
-    description: "Ensure that the host's network namespace is not shared (Scored)"
+    description: "Ensure that the host's network namespace is not shared (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:NetworkMode={{ .HostConfig.NetworkMode }}'
     use_multiple_values: true
     tests:
@@ -1272,7 +1304,7 @@ groups:
     scored: true
 
   - id: 5.10
-    description: "Ensure that the memory usage for container is limited (Scored)"
+    description: "Ensure that the memory usage for container is limited (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Memory={{ .HostConfig.Memory }}'
     use_multiple_values: true
     tests:
@@ -1298,7 +1330,7 @@ groups:
     scored: true
 
   - id: 5.11
-    description: "Ensure that CPU priority is set appropriately on container (Scored)"
+    description: "Ensure that CPU priority is set appropriately on container (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:CpuShares={{ .HostConfig.CpuShares }}'
     use_multiple_values: true
     tests:
@@ -1342,8 +1374,7 @@ groups:
     scored: true
 
   - id: 5.12
-    description: "Ensure that the container's root filesystem is mounted as read only
-    (Scored)"
+    description: "Ensure that the container's root filesystem is mounted as read only (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:ReadonlyRootfs={{ .HostConfig.ReadonlyRootfs }}'
     use_multiple_values: true
     tests:
@@ -1379,8 +1410,7 @@ groups:
     scored: true
 
   - id: 5.13
-    description: "Ensure that incoming container traffic is bound to a specific host
-    interface (Scored)"
+    description: "Ensure that incoming container traffic is bound to a specific host interface (Automated)"
     audit: docker ps --quiet | xargs docker inspect --format '{{ .Id }}:Ports={{ .NetworkSettings.Ports }}'
     use_multiple_values: true
     tests:
@@ -1396,7 +1426,7 @@ groups:
     scored: true
 
   - id: 5.14
-    description: "Ensure that the 'on-failure' container restart policy is set to '5' (Scored)"
+    description: "Ensure that the 'on-failure' container restart policy is set to '5' (Automated)"
     audit: "docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}: RestartPolicyName={{ .HostConfig.RestartPolicy.Name }} MaximumRetryCount={{ .HostConfig.RestartPolicy.MaximumRetryCount }}'"
     use_multiple_values: true
     tests:
@@ -1423,7 +1453,7 @@ groups:
     scored: true
 
   - id: 5.15
-    description: "Ensure that the host's process namespace is not shared (Scored)"
+    description: "Ensure that the host's process namespace is not shared (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:PidMode={{ .HostConfig.PidMode }}'
     use_multiple_values: true
     tests:
@@ -1437,7 +1467,7 @@ groups:
     scored: true
 
   - id: 5.16
-    description: "Ensure that the host's IPC namespace is not shared (Scored)"
+    description: "Ensure that the host's IPC namespace is not shared (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:IpcMode={{ .HostConfig.IpcMode }}'
     use_multiple_values: true
     tests:
@@ -1451,8 +1481,7 @@ groups:
     scored: true
 
   - id: 5.17
-    description: "Ensure that host devices are not directly exposed to containers (Not
-    Scored)"
+    description: "Ensure that host devices are not directly exposed to containers (Manual)"
     type: manual
     remediation: |
       You should not directly expose host devices to containers. If you do need to expose host
@@ -1467,8 +1496,7 @@ groups:
     scored: false
 
   - id: 5.18
-    description: "Ensure that the default ulimit is overwritten at runtime, only if needed
-    (Not Scored)"
+    description: "Ensure that the default ulimit is overwritten at runtime, only if needed (Manual)"
     type: manual
     remediation: |
       You should only override the default ulimit settings if needed in a specific case.
@@ -1477,7 +1505,7 @@ groups:
     scored: true
 
   - id: 5.19
-    description: "Ensure mount propagation mode is not set to shared (Scored)"
+    description: "Ensure mount propagation mode is not set to shared (Automated)"
     type: manual
     remediation: |
       Do not mount volumes in shared mode propagation.
@@ -1487,7 +1515,7 @@ groups:
     scored: true
 
   - id: 5.20
-    description: "Ensure that the host's UTS namespace is not shared (Scored)"
+    description: "Ensure that the host's UTS namespace is not shared (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:UTSMode={{ .HostConfig.UTSMode }}'
     use_multiple_values: true
     tests:
@@ -1501,7 +1529,7 @@ groups:
     scored: true
 
   - id: 5.21
-    description: "Ensure the default seccomp profile is not Disabled (Scored)"
+    description: "Ensure the default seccomp profile is not Disabled (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:SecurityOpt={{ .HostConfig.SecurityOpt }}'
     use_multiple_values: true
     tests:
@@ -1523,16 +1551,12 @@ groups:
     scored: true
 
   - id: 5.22
-    description: "Ensure that docker exec commands are not used with the privileged option
-    (Scored)"
+    description: "Ensure that docker exec commands are not used with the privileged option (Automated)"
     audit: "ausearch -if $audit-log -k docker | grep exec | grep privileged"
     tests:
       test_items:
-      - flag: ""
-        compare:
-          op: eq
-          value: ""
-        set: true
+      - flag: "privileged"
+        set: false
     remediation: |
       If audit rule for docker file not set\n
       Add the line as below in /etc/audit/audit.rules file:\n
@@ -1543,14 +1567,14 @@ groups:
     scored: true
 
   - id: 5.23
-    description: "Ensure that docker exec commands are not used with the user=root option (Not Scored)"
+    description: "Ensure that docker exec commands are not used with the user=root option (Manual)"
     audit: "ausearch -if $audit-log -k docker | grep exec | grep user"
     tests:
       test_items:
-      - flag: ""
+      - flag: "user"
         compare:
           op: eq
-          value: ""
+          value: "root"
         set: true
     remediation: |
       If audit rule for docker file not set\n
@@ -1562,7 +1586,7 @@ groups:
     scored: true
 
   - id: 5.24
-    description: "Ensure cgroup usage is confirmed (Scored)"
+    description: "Ensure cgroup usage is confirmed (Automated)"
     type: manual
     remediation: |
       You should not use the --cgroup-parent option within the docker run command unless 
@@ -1570,8 +1594,7 @@ groups:
     scored: true
 
   - id: 5.25
-    description: "Ensure that the container is restricted from acquiring additional
-    privileges (Scored)"
+    description: "Ensure that the container is restricted from acquiring additional privileges (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:SecurityOpt={{ .HostConfig.SecurityOpt }}'
     use_multiple_values: true
     tests:
@@ -1580,11 +1603,11 @@ groups:
         set: true
     remediation: |
       You should start your container with the options below: 
-      docker run --rm -it --security-opt=no-new-privileges ubuntu bash    scored: true
+      docker run --rm -it --security-opt=no-new-privileges ubuntu bash
     scored: true
     
   - id: 5.26
-    description: "Ensure that container health is checked at runtime (Scored)"
+    description: "Ensure that container health is checked at runtime (Automated)"
     type: manual
     remediation: |
       You should run the container using the --health-cmd parameter.
@@ -1593,8 +1616,7 @@ groups:
     scored: true
 
   - id: 5.27
-    description: "Ensure that Docker commands always make use of the latest 
-    version of their image (Not Scored)"
+    description: "Ensure that Docker commands always make use of the latest  version of their image (Manual)"
     type: manual
     remediation: |
       You should use proper version pinning mechanisms (the "latest" tag which is assigned by
@@ -1604,7 +1626,7 @@ groups:
     scored: false
 
   - id: 5.28
-    description: "Ensure that the PIDs cgroup limit is used (Scored)"
+    description: "Ensure that the PIDs cgroup limit is used (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:PidsLimit={{ .HostConfig.PidsLimit }}'
     use_multiple_values: true
     tests:
@@ -1624,7 +1646,7 @@ groups:
     scored: true
 
   - id: 5.29
-    description: "Ensure that Docker's default bridge docker0 is not used (Not Scored)"
+    description: "Ensure that Docker's default bridge docker0 is not used (Manual)"
     audit: docker network ls --quiet | xargs docker network inspect --format '{{ .Name }}:{{ .Options }}'
     tests:
       test_items:
@@ -1636,7 +1658,7 @@ groups:
     scored: false
 
   - id: 5.30
-    description: "Ensure that the host's user namespaces is not shared (Scored)"
+    description: "Ensure that the host's user namespaces is not shared (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:UsernsMode={{ .HostConfig.UsernsMode }}'
     tests:
       test_items:
@@ -1652,7 +1674,7 @@ groups:
     scored: true
 
   - id: 5.31
-    description: "Ensure that the Docker socket is not mounted inside any containers (Scored)"
+    description: "Ensure that the Docker socket is not mounted inside any containers (Automated)"
     audit: docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}:Volumes={{ .Mounts }}' | grep docker.sock
     tests:
       test_items:
@@ -1666,7 +1688,7 @@ groups:
   description: "Docker Security Operations"
   checks:
   - id: 6.1
-    description: "Ensure that image sprawl is avoided (Not Scored)"
+    description: "Ensure that image sprawl is avoided (Manual)"
     type: manual
     remediation: |
       You should keep only the images that you actually need and establish a workflow to
@@ -1686,7 +1708,7 @@ groups:
     scored: false
 
   - id: 6.2
-    description: "Ensure that container sprawl is avoided (Not Scored)"
+    description: "Ensure that container sprawl is avoided (Manual)"
     type: manual
     remediation: |
       You should periodically check your container inventory on each host and clean up
@@ -1701,7 +1723,7 @@ groups:
       - active
   checks:
   - id: 7.1
-    description: "Ensure swarm mode is not Enabled, if not needed (Scored)"
+    description: "Ensure swarm mode is not Enabled, if not needed (Automated)"
     type: manual
     remediation: |
       If swarm mode has been enabled on a system in error, you should run the command below:
@@ -1709,8 +1731,7 @@ groups:
     scored: true
 
   - id: 7.2
-    description: "Ensure that the minimum number of manager nodes have been created
-    in a swarm (Scored)"
+    description: "Ensure that the minimum number of manager nodes have been created in a swarm (Automated)"
     type: manual
     remediation: |
       If an excessive number of managers is configured, the excess nodes can be demoted to
@@ -1720,9 +1741,8 @@ groups:
     scored: true
 
   - id: 7.3
-    description: "Ensure that swarm services are bound to a specific host interface
-    (Scored)"
-    audit: netstat -lt | grep -i 2377
+    description: "Ensure that swarm services are bound to a specific host interface (Automated)"
+    audit: ss -lp | grep -iE ':2377|:7946'
     tests:
       test_items:
       - flag: "0.0.0.0"
@@ -1733,18 +1753,11 @@ groups:
     scored: true
 
   - id: 7.4
-    description: "Ensure data exchanged between containers are encrypted on
-    different nodes on the overlay network (Scored)"
-    audit: docker network ls --filter driver=overlay --quiet | xargs docker network inspect --format '{{.Name}} {{ .Options }}'
+    description: "Ensure that all Docker swarm overlay networks are encrypted (Automated)"
+    audit: docker network ls --filter driver=overlay --quiet | xargs -r docker network inspect --format '{{.Name}} {{ .Options }}'
     use_multiple_values: true
     tests:
-      bin_op: or
       test_items:
-      - flag: ""
-        compare:
-          op: eq
-          value: ""
-        set: true
       - flag: "encrypted"
         set: true
     remediation: |
@@ -1752,15 +1765,15 @@ groups:
     scored: true
 
   - id: 7.5
-    description: "Ensure that Docker's secret management commands are used for managing secrets in a swarm cluster (Not Scored)"
+    description: "Ensure that Docker's secret management commands are used for managing secrets in a swarm cluster (Manual)"
     type: manual
     remediation: |
       You should follow the docker secret documentation and use it to manage secrets effectively.
     scored: true
 
   - id: 7.6
-    description: "Ensure that swarm manager is run in auto-lock mode (Scored)"
-    audit: docker swarm unlock-key
+    description: "Ensure that swarm manager is run in auto-lock mode (Automated)"
+    audit: "docker info --format 'Swarm Autolock: {{ .Swarm.Cluster.Spec.EncryptionConfig.AutoLockManagers }}'"
     tests:
       test_items:
       - flag: "no unlock key is set"
@@ -1774,7 +1787,7 @@ groups:
     scored: true
 
   - id: 7.7
-    description: "Ensure that the swarm manager auto-lock key is rotated periodically (Not Scored)"
+    description: "Ensure that the swarm manager auto-lock key is rotated periodically (Manual)"
     type: manual
     remediation: |
       You should run the command below to rotate the keys.
@@ -1784,7 +1797,7 @@ groups:
     scored: false
 
   - id: 7.8
-    description: "Ensure that node certificates are rotated as appropriate (Not Scored)"
+    description: "Ensure that node certificates are rotated as appropriate (Manual)"
     type: manual
     remediation: |
       You should run the command to set the desired expiry time on the node certificate.
@@ -1793,7 +1806,7 @@ groups:
     scored: false 
 
   - id: 7.9
-    description: "Ensure that CA certificates are rotated as appropriate (Not Scored)"
+    description: "Ensure that CA certificates are rotated as appropriate (Manual)"
     type: manual
     remediation: |
       You should run the command below to rotate a certificate.
@@ -1801,166 +1814,10 @@ groups:
     scored: false
 
   - id: 7.10
-    description: "Ensure that management plane traffic is separated from data
-    plane traffic (Not Scored)"
+    description: "Ensure that management plane traffic is separated from data plane traffic (Manual)"
     type: manual
     remediation: |
       You should run the command below on each swarm node and ensure that the management
       plane address is different from the data plane address.
       docker swarm init --advertise-addr=192.168.0.1 --data-path-addr=17.1.0.3
     scored: false
-- id: 8
-  description: "Docker Enterprise Configuration"
-  checks:
-- id: 8.1
-  description: "Universal Control Plane Configuration"
-  checks:
-  - id: 8.1.1
-    description: "Configure the LDAP authentication service (Scored)"  
-    type: "manual"
-    audit: "CURRENT_CONFIG_NAME=$(docker service inspect --format '{{ range $config := .Spec.TaskTemplate.ContainerSpec.Configs }}{{ $config.ConfigName }}{{ \"\\n\" }}{{ end }}' ucp-agent | grep 'com.docker.ucp.config-') docker config inspect --format '{{ printf \"%s\" .Spec.Data }}' $CURRENT_CONFIG_NAME | grep backend"
-    tests:
-      test_items:
-      - flag: "backend = \"ldap\""
-        set: true
-    remediation: |
-      You can configure LDAP integration via the UCP "Admin Settings" UI by following the
-      instructions here: "https://docs.docker.com/datacenter/ucp/2.2/guides/admin/configure/external-auth/".
-      LDAP integration can also be enabled via a configuration file by following
-      the instructions here: "https://docs.docker.com/datacenter/ucp/2.2/guides/admin/configure/external-auth/enable-ldap-config-file/".
-    scored: true
-  - id: 8.1.2
-    description: "Use external certificates (Scored)"  
-    type: "manual"
-    audit: "openssl s_client -showcerts -connect <UCP_FQDN:443>"
-    tests:
-      test_items:
-      - flag: ""
-        set: true
-    remediation: |
-      You can configure your own certificates for UCP either during installation or after
-      installation via the UCP "Admin Settings" user interface.
-      Customize certificates during installation:
-      1. Create a volume named ucp-controller-server-certs on your primary UCP
-         Manager installation node:
-      docker volume create ucp-controller-server-certs
-      2. Copy your external certificate authority's public certificate file (ca.pem) and your
-         signed certificate (cert.pem) and key (key.pem) files to the root directory of the
-         volume
-      cp ca.pem cert.pem key.pem $(docker volume inspect --format '{{ .Mountpoint
-      }}' ucp-controller-server-certs)/
-      3. Run the UCP installation command with the --external-server-cert flag
-      
-      Customize certificates post-installation via the "Admin Settings" UI:
-      Refer to the instructions at
-      https://docs.docker.com/datacenter/ucp/2.2/guides/admin/configure/use-your-own-tls-
-      certificates/#configure-ucp-to-use-your-own-tls-certificates-and-keys for configuring your
-      own certificates via the UCP UI.
-    scored: true
-  - id: 8.1.3
-    description: "Enforce the use of client certificate bundles for unprivileged users (Not Scored)"  
-    type: "manual"
-    audit: |
-      UCP cluster administrators can audit client certificate bundles on a per-user basis. You can
-      verify that a user's client certificate bundle has been created by navigating to the USER
-      MANAGEMENT | USERS interface in UCP, selecting the user from the list, clicking on the
-      "Configure" button from the right-hand navigation menu, and selecting "Client Bundle"
-      from the drop-down. From there, a list of client bundles assigned to the user will appear.
-      This page also allows administrators to revoke client certificate bundles when necessary.
-    remediation: |
-      Client certificate bundles can be created in one of two ways:
-      User Management UI
-      UCP Administrators can provision client certificate bundles on behalf of users by navigating
-      to the USER MANAGEMENT | USERS interface in UCP, selecting the user from the list,
-      clicking on the "Configure" button from the right-hand navigation, and selecting "Client
-      Bundle" from the drop-down. The "New Client Bundle" link can be selected to create a
-      client bundle. This will trigger a download of the bundle as a .zip file.
-      Self-Provision
-      Users with access to the UCP console can create client certificate bundles themselves. After
-      logging into the console, the user can select their username drop-down from the top-left
-      corner of the navigation page and select the "My Profile" option. From there, the "New
-      Client Bundle" link can be selected to create a client bundle and this will trigger a download
-      of the bundle as a .zip file.
-    scored: false
-  - id: 8.1.4
-    description: "Configure applicable cluster role-based access control policies (Not Scored)"  
-    type: "manual"
-    audit: |
-      The UCP "User Management" UI can be used to validate that the configured RBAC model
-      satisfies the requirements of your organization.
-    remediation: |
-      UCP RBAC components can be configured as required via the UCP "User Management" UI.
-    scored: false
-  - id: 8.1.5
-    description: "Enable signed image enforcement (Scored)"  
-    type: "manual"
-    audit: |
-      The "Docker Content Trust" page under the UCP "Admin Settings" UI can be used to verify
-      that this setting has been enabled.
-    remediation: |
-      None is mentioned
-    scored: true
-  - id: 8.1.6
-    description: "Set the Per-User Session Limit to a value of '3' or lower (Scored)"  
-    type: "manual"
-    remediation: |
-      As a Docker Enterprise Administrator, execute the following commands from a machine
-      with connectivity to the UCP management console. Replace [ucp_url] with your UCP URL,
-      [ucp_username] with the username of a Docker Enterprise Administrator and
-      [ucp_password] with the password of a Docker Enterprise Administrator.
-      Step 1: Retrieve a UCP API token
-      Linux (requires curl and jq):
-      $ AUTHTOKEN=$(curl -sk -d
-      '{"username":"[ucp_username]","password":"[ucp_password]"}'
-      https://[ucp_url]/auth/login | jq -r .auth_token)
-      Step 2: Retrieve and save UCP config
-      Linux (requires curl):
-      $ curl -sk -H "Authorization: Bearer $AUTHTOKEN"
-      https://[ucp_url]/api/ucp/config-toml > ucp-config.toml
-      Step 3: Open the ucp-config.toml file, set the per_user_limit entry under the
-      [auth.sessions] section to a value of '3' or lower, but greater than '0'. Save the file.
-      Step 4: Execute the following command to update UCP with the new configuration:
-      Linux (requires curl):
-      $ curl -sk -H "Authorization: Bearer $AUTHTOKEN" --upload-file ucp-
-      config.toml https://[ucp_url]/api/ucp/config-toml
-    scored: true
-  - id: 8.1.7
-    description: "Set the \"Lifetime Minutes\" and \"Renewal Threshold Minutes\" values to '15' or lower and '0' respectively (Scored)"  
-    type: "manual"
-    remediation: |
-      As a Docker Enterprise Administrator, execute the following commands from a machine
-      with connectivity to the UCP management console. Replace [ucp_url] with your UCP URL,
-      [ucp_username] with the username of a Docker Enterprise Administrator and
-      [ucp_password] with the password of a Docker Enterprise Administrator.
-      Step 1: Retrieve a UCP API token
-      Linux (requires curl and jq):
-      $ AUTHTOKEN=$(curl -sk -d
-      '{"username":"[ucp_username]","password":"[ucp_password]"}'
-      https://[ucp_url]/auth/login | jq -r .auth_token)
-      Step 2: Retrieve and save UCP config
-      Linux (requires curl):
-      $ curl -sk -H "Authorization: Bearer $AUTHTOKEN"
-      https://[ucp_url]/api/ucp/config-toml > ucp-config.toml
-      Step 3: Open the ucp-config.toml file, set the lifetime_minutes and
-      renewal_threshold_minutes entries under the [auth.sessions] section to values of '15'
-      or lower and '0' respectively. Save the file.
-      Step 4: Execute the following command to update UCP with the new configuration:
-      Linux (requires curl):
-      $ curl -sk -H "Authorization: Bearer $AUTHTOKEN" --upload-file ucp-
-      config.toml https://[ucp_url]/api/ucp/config-toml
-    scored: true
-- id: 8.2
-  description: "Docker Trusted Registry Configuration"
-  checks:
-  - id: 8.2.1
-    description: "Enable image vulnerability scanning (Scored)"  
-    type: "manual"
-    remediation: |
-      You can navigate to DTR "Settings" UI and select the "Security" tab to access the image
-      scanning configuration. Select the "Enable Scanning" slider to enable this functionality. You
-      can also enable the Image Scanning capability via the DTR API using the cURL command as
-      follows:
-      $ curl -X POST "https://<YOUR_DTR_URL>/api/v0/meta/settings" -H "accept:
-      application/json" -H "content-type: application/json" -d "{
-      \"scanningEnabled\": true}"
-    scored: true

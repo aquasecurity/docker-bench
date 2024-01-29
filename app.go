@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,9 +15,10 @@ import (
 )
 
 var benchmarkVersionMap = map[string]string{
-	"cis-1.2": ">= 18.09",
-	"cis-1.1": ">= 17.06, < 18.09",
-	"cis-1.0": ">= 1.13.0, < 17.06",
+	"cis-1.3.1": ">= 20.10",
+	"cis-1.2":   ">= 18.09, < 20.10",
+	"cis-1.1":   ">= 17.06, < 18.09",
+	"cis-1.0":   ">= 1.13.0, < 17.06",
 }
 
 func app(cmd *cobra.Command, args []string) {
@@ -115,13 +115,13 @@ func runControls(controls *check.Controls, checkList string) check.Summary {
 }
 
 func getControls(path, substitutionFile string, constraints []string) (*check.Controls, error) {
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
 	s := string(data)
 	if substitutionFile != "" {
-		substitutionData, err := ioutil.ReadFile(substitutionFile)
+		substitutionData, err := os.ReadFile(substitutionFile)
 		if err != nil {
 			return nil, err
 		}

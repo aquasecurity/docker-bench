@@ -5,3 +5,5 @@
 
 docker-storage:
   value: /var/lib/docker
+audit-log:
+  value: /var/log/audit/audit.log

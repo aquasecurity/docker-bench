@@ -13,11 +13,12 @@ Tests are configured with YAML files, making this tool easy to update as test sp
 
 docker-bench currently supports tests as defined in the following CIS Docker Benchmarks:
 
-| CIS Benchmark | docker-bench cfg directory | Docker versions |
-|---|---|---|
-| [Docker Benchmark v1.2.0](https://workbench.cisecurity.org/benchmarks/2351) | cis-1.2 | 18.09 and Docker Enterprise 2.1 |
-| [Docker Community Edition Benchmark v1.1.0](https://workbench.cisecurity.org/benchmarks/552) | cis-1.1 | 17.06 |
-| [Docker Benchmark v1.0.0](https://workbench.cisecurity.org/benchmarks/363) | cis-1.0 | 1.13.0 |
+| CIS Benchmark                                                                         | docker-bench cfg directory | Docker versions |
+|---------------------------------------------------------------------------------------|----------------------------|---|
+| [CIS Docker Benchmark v1.3.1](https://workbench.cisecurity.org/benchmarks/7193)| [cis-1.3.1](./cfg/cis-1.3.1) | 20.10|
+| [CIS Docker Benchmark v1.2.0](https://workbench.cisecurity.org/benchmarks/601)        | [cis-1.2](./cfg/cis-1.2)   | 18.09 and Docker Enterprise 2.1 |
+| [CIS Docker Community Edition Benchmark v1.1.0](https://workbench.cisecurity.org/benchmarks/552) | [cis-1.1](./cfg/cis-1.1)   | 17.06 |
+| [CIS Docker 1.13.0 Benchmark v1.0.0](https://workbench.cisecurity.org/benchmarks/363) | [cis-1.0](./cfg/cis-1.0)   | 1.13.0 |
 
 
 docker-bench will determine the test set to run based on the Docker version running on the host machine. 

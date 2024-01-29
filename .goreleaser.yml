@@ -21,8 +21,9 @@ nfpms:
     description: "Checks whether Docker is deployed according to security best practices as defined in the CIS Docker Benchmark"
     license: Apache-2.0
     homepage: https://github.com/aquasecurity/docker-bench
-    files:
-      "cfg/**/*": "/etc/docker-bench/cfg"
+    contents:
+      - src: "cfg/**/*"
+        dst: "/etc/docker-bench/cfg"
     formats:
       - deb
       - rpm

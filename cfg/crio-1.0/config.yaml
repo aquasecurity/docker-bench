@@ -1,0 +1,7 @@
+---
+## Controls Files.
+# These are YAML files that hold all the details for running checks.
+# In here you can set all parameter substitution for crio-bench
+
+crio-storage:
+  value: /var/lib/containers/storage

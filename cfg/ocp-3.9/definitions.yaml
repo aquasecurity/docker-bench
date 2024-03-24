@@ -22,7 +22,7 @@ groups:
     description: "Ensure the container host has been Hardened (Not Scored)"
     type: manual
     remediation: "You may consider various CIS Security Benchmarks for your container host.
-    If you have other security guidelines or regulatory requirements to adhere to, please 
+    If you have other security guidelines or regulatory requirements to adhere to, please
     follow them as suitable in your environment.
     Additionally, you can run a kernel with grsecurity and PaX . This would add many safety
     checks, both at compile-time and run-time. It is also designed to defeat many exploits and
@@ -61,7 +61,7 @@ groups:
     scored: true
 
   - id: 1.6
-    description: "Ensure auditing is configured for Docker files and directories - 
+    description: "Ensure auditing is configured for Docker files and directories -
     $docker-storage (Scored)"
     audit: "auditctl -l | grep $docker-storage"
     tests:
@@ -230,7 +230,7 @@ groups:
       Alternatively, run the Docker daemon as below:
       dockerd --log-level="info"
     scored: true
-  
+
   - id: 2.2.b
     description: "Set the logging level (Scored)"
     audit: "grep log-level /etc/docker/daemon.json"
@@ -247,7 +247,7 @@ groups:
       Alternatively, run the Docker daemon as below:
       dockerd --log-level="info"
     scored: true
-    
+
   - id: 2.3
     description: "Allow Docker to make changes to iptables (Scored)"
     audit: "ps -ef | grep dockerd"
@@ -310,7 +310,7 @@ groups:
     remediation: |
       Follow the steps mentioned in the Docker documentation or other references.
     scored: true
-    
+
   - id: 2.6.b
     description: "Configure TLS authentication for Docker daemon (Scored)"
     audit: 'grep tls /etc/docker/daemon.json | tr -d ","'
@@ -397,7 +397,7 @@ groups:
       For Example,
       dockerd --cgroup-parent=/foobar
     scored: true
-  
+
   - id: 2.9.b
     description: "Confirm default cgroup usage (Scored)"
     audit: "grep cgroup-parent /etc/docker/daemon.json"
@@ -431,7 +431,7 @@ groups:
     remediation: |
       Do not set --storage-opt dm.basesize until needed.
     scored: true
-  
+
   - id: 2.10.b
     description: "Do not change base device size until needed (Scored)"
     audit: "grep storage-opt /etc/docker/daemon.json"
@@ -445,7 +445,7 @@ groups:
     remediation: |
       Do not set --storage-opt dm.basesize until needed.
     scored: true
-    
+
   - id: 2.11.a
     description: "Use authorization plugin (Scored)"
     audit: ps -ef | grep dockerd
@@ -576,7 +576,7 @@ groups:
       Run the Docker daemon as below:
       dockerd --userland-proxy=false
     scored: true
-  
+
   - id: 2.18.b
     description: "Disable Userland Proxy (Scored)"
     audit: 'grep userland-proxy /etc/docker/daemon.json | tr -d ","'
@@ -997,7 +997,7 @@ groups:
       - Scan Docker images for vulnerabilities in their dependencies and configurations
         they will impose upon your network.
     scored: false
- 
+
   - id: 4.3
     description: "Ensure unnecessary packages are not installed in the container (Not Scored)"
     type: manual
@@ -1263,12 +1263,12 @@ groups:
       test_items:
       - flag: "CpuShares"
         compare:
-          op: gt 
+          op: gt
           value: 0
         set: true
       - flag: "CpuShares"
         compare:
-          op: lt 
+          op: lt
           value: 1024
         set: true
     remediation: |
@@ -1504,7 +1504,7 @@ groups:
       For example, you should start your container as below:
       docker run --rm -it --security-opt=no-new-privileges ubuntu bash
     scored: true
-  
+
   - id: 5.25.b
     description: "Ensure the container is restricted from acquiring additional
     privileges (Scored)"
@@ -1665,7 +1665,7 @@ groups:
 
 #- id: 7
 #  description: "Docker Swarm Configuration"
-#  constraints: 
+#  constraints:
 #    docker-swarm:
 #      - active
 #  checks:
@@ -1755,7 +1755,7 @@ groups:
 #      Run the below command to set the desired expiry time.
 #      For example,
 #      docker swarm update --cert-expiry 48h
-#    scored: false 
+#    scored: false
 #
 #  - id: 7.9
 #    description: "Ensure CA certificates are rotated as appropriate (Not Scored)"

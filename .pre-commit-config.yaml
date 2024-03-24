@@ -1,0 +1,48 @@
+---
+default_language_version:
+  python: python3
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: check-merge-conflict     # Check for files that contain merge conflict strings.
+      - id: trailing-whitespace     # Trims trailing whitespace.
+        args: [--markdown-linebreak-ext=md]
+      - id: mixed-line-ending       # Replaces or checks mixed line ending.
+        args: [--fix=auto]
+      - id: end-of-file-fixer       # Makes sure files end in a newline and only a newline.
+      - id: check-case-conflict     # Check for files with names that would conflict on a
+                                    # case-insensitive filesystem like MacOS HFS+ or Windows FAT.
+      - id: check-json              # Attempts to load all json files to verify syntax.
+      - id: check-symlinks          # Checks for symlinks which do not point to anything.
+      - id: fix-byte-order-marker     # removes UTF-8 byte order marke
+
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: master
+    hooks:
+      - id: go-fmt
+      - id: go-vet
+      - id: go-lint
+      - id: go-imports
+      - id: go-cyclo
+        args: [-over=15]
+      - id: validate-toml
+      - id: no-go-testing
+      - id: golangci-lint
+      - id: go-critic
+      - id: go-unit-tests
+      - id: go-build
+      - id: go-mod-tidy
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.28.0
+    hooks:
+      - id: yamllint
+        name: Run yamllint
+
+  - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+    rev: 0.2.3    # or other specific tag
+    hooks:
+      - id: yamlfmt
+        args: [--mapping, '2', --sequence, '4', --offset, '2', --width, '160']

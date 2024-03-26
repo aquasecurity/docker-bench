@@ -15,7 +15,7 @@ import (
 )
 
 var benchmarkVersionMap = map[string]string{
-	"cis-1.3.1": ">= 20.10",
+	"cis-1.6.0": ">= 20.10",
 	"cis-1.2":   ">= 18.09, < 20.10",
 	"cis-1.1":   ">= 17.06, < 18.09",
 	"cis-1.0":   ">= 1.13.0, < 17.06",

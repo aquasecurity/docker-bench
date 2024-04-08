@@ -1,0 +1,787 @@
+---
+controls:
+id: "1.0"
+description: "CIS CRI-O Community Edition Benchmark"
+groups:
+- id: 1
+  description: "Host Configuration"
+  checks:
+- id: 1.1
+  description: "General Configuration"
+  checks:
+  - id: 1.1.1
+    description: "Ensure the container host has been Hardened (Not Scored)"
+    type: manual
+    audit: |
+      Ensure that the host specific security guidelines are followed.
+      Ask the system administrators which security benchmark the current
+      host system should currently be compliant with and check that security
+      standards associated with this standard are currently in place.
+    remediation: |
+      You may consider various CIS Security Benchmarks for your container host.
+      If you have other security guidelines or regulatory requirements
+      to adhere to, please follow them as suitable in your environment.
+    scored: false
+
+  - id: 1.1.2
+    description: "Ensure that the version of CRI-O is up to date (Not Scored)"
+    type: manual
+    audit: "crio --version"
+    remediation: |
+      You should monitor versions of CRI-O releases and make sure
+      your software is updated as required.
+    scored: false
+
+- id: 1.2
+  description: "Linux Hosts Specific Configuration"
+  checks:
+  - id: 1.2.1
+    description: "Ensure a separate partition for containers has been created (Scored)"
+    audit: "mountpoint $crio-storage | grep is"
+    tests:
+      test_items:
+      - flag: "not"
+        set: false
+    remediation: |
+      For new installations, you should create a separate partition for the $crio-storage mount point.
+      For systems which have already been installed,
+      you should use the Logical Volume Manager (LVM)
+      within Linux to create a new partition.
+    scored: true
+
+  - id: 1.2.2
+    description: "Ensure only trusted users are allowed to control CRI-O daemon (Scored)"
+    audit: "ls -l '/var/run/crio/crio.sock'"
+    type: manual
+    remediation: |
+      You should remove any untrusted users from the CRI-O group.
+      Additionally, you should not create a mapping of sensitive directories from the host to container volumes."
+    scored: true
+
+  - id: 1.2.3
+    description: "Ensure auditing is configured for the CRIO-O daemon (Scored)"
+    audit: "auditctl -l | grep /usr/bin/crio"
+    tests:
+      test_items:
+      - flag: "/usr/bin/crio"
+        set: true
+    remediation: |
+      You should add rules for the CRIO-O daemon. For example:
+      Add the line below to the
+      /etc/audit/audit.rules file:
+      -w /usr/bin/crio -k crio
+      Then, restart the audit daemon using the following command service auditd restart"
+    scored: true
+
+  - id: 1.2.4
+    description: "Ensure auditing is configured for CRIO-O files and directories -
+    $crio-storage (Scored)"
+    audit: "auditctl -l | grep $crio-storage"
+    tests:
+      test_items:
+      - flag: "$crio-storage"
+        set: true
+    remediation: |
+      You should add a rule for the $crio-storage directory.
+      For example, Add the line as below to the /etc/audit/audit.rules file:
+      -w $crio-storage -k crio
+      Then restart the audit daemon. For example,
+      service auditd restart"
+    scored: true
+
+  - id: 1.2.5
+    description: "Ensure auditing is configured for CRIO-O files and directories -
+    /etc/crio (Scored)"
+    audit: "auditctl -l | grep /etc/crio"
+    tests:
+      test_items:
+      - flag: "/etc/crio"
+        set: true
+    remediation: |
+      You should add a rule for the /etc/crio directory.
+      For example: Add the line below to the /etc/audit/audit.rules file:
+      -w /etc/crio -k crio
+      Then restart the audit daemon. For example:
+      service auditd restart"
+    scored: true
+
+  - id: 1.2.6
+    description: "Ensure auditing is configured for CRIO-O files and directories -
+    /etc/crio (Scored)"
+    audit: "auditctl -l | grep  crio.service"
+    tests:
+      test_items:
+      - flag: "crio.service"
+        set: true
+    remediation: |
+      If the file exists, a rule for it should be added.
+      For example: Add the line as below in /etc/audit/audit.rules file:
+      -w /usr/lib/systemd/system/crio.service -k crio
+      Then restart the audit daemon. For example:
+      service auditd restart
+    scored: true
+
+  - id: 1.2.7
+    description: "Ensure auditing is configured for CRIO-O files and directories -
+    crio.sock (Scored)"
+    audit: "auditctl -l | grep /var/run/crio/crio.sock"
+    tests:
+      test_items:
+      - flag: "crio.sock"
+        set: true
+    remediation: |
+      If the file exists, you should add a rule for it.
+      For example: Add the line below to the /etc/audit/audit.rules file:
+      -w /var/run/crio/crio.sock -k crio
+      Then restart the audit daemon. For example:
+      service auditd restart"
+    scored: true
+
+  - id: 1.2.9
+    description: "Ensure auditing is configured for CRI-O files and directories - /etc/sysconfig/crio (Scored)"
+    audit: "auditctl -l | grep /etc/sysconfig/crio"
+    tests:
+      test_items:
+      - flag: "/etc/sysconfig/crio"
+        set: true
+    remediation: |
+      You should add a rule for the /etc/sysconfig/crio file.
+      For example: Add the line below to the /etc/audit/audit.rules file:
+      -w /etc/sysconfig/crio -k crio
+      Then restart the audit daemon. For example:
+      service auditd restart
+    scored: true
+
+  - id: 1.2.10
+    description: "Ensure auditing is configured for CRI-O files and directories -
+    /etc/crio/crio.conf (Scored)"
+    audit: "auditctl -l | grep /etc/crio/crio.conf"
+    tests:
+      test_items:
+      - flag: "/etc/crio/crio.conf"
+        set: true
+    remediation: |
+      You should add a rule for the /etc/crio/crio.conf file.
+      For example:
+      Add the line below to the /etc/audit/audit.rules file:
+      -w /etc/crio/crio.conf -k crio
+      Then restart the audit daemon.
+      For example:
+      service auditd restart
+    scored: true
+
+  - id: 1.2.11
+    description: "Ensure auditing is configured for CRIO-O files and directories -
+    /usr/bin/crio (Scored)"
+    audit: "auditctl -l | grep /usr/bin/crio"
+    tests:
+      test_items:
+      - flag: "/usr/bin/crio"
+        set: true
+    remediation: |
+      You should add a rule for the /usr/bin/crio file.
+      For example:
+      Add the line below to the /etc/audit/audit.rules file:
+      -w /usr/bin/crio -k crio
+      Then restart the audit daemon.
+      For example:
+      service auditd restart
+    scored: true
+
+  - id: 1.2.12
+    description: "Ensure auditing is configured for CRI-O files and directories -
+    /usr/bin/runc (Scored)"
+    audit: "auditctl -l | grep /usr/bin/runc"
+    tests:
+      test_items:
+      - flag: "/usr/bin/runc"
+        set: true
+    remediation: |
+      You should add a rule for /usr/bin/runc file.
+      For example:
+      Add the line below to the /etc/audit/audit.rules file:
+      -w /usr/bin/runc -k crio
+      Then restart the audit daemon.
+      For example:
+      service auditd restart
+    scored: true
+
+- id: 2
+  description: "CRI-O daemon configuration"
+  checks:
+  - id: 2.1
+    description: "Make sure network traffic is restricted between containers on the
+    default bridge (Not Scored)"
+    type: manual
+    audit: |
+            Ensure that network traffic is restricted between containers on the default bridge
+    remediation: |
+      Ensure that network traffic is restricted between containers on the default bridge
+    scored: false
+
+  - id: 2.2
+    description: "Ensure the logging level is set to 'info' (Scored)"
+    audit: "ps -ef | grep crio"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "--log-level"
+        set: false
+      - flag: "--log-level"
+        compare:
+          op: eq
+          value: "info"
+        set: true
+    remediation: |
+      Ensure that the CRI-O daemon configuration file has the following configuration included
+      "log-level": "info"
+    scored: true
+
+  - id: 2.4
+    description: "Ensure insecure registries are not used (Scored)"
+    audit: "grep \"insecure = true\" /etc/containers/registries.conf"
+    tests:
+      test_items:
+      - flag: "true"
+        set: false
+    remediation: |
+      You should ensure that no insecure registries are in use.
+    scored: true
+
+  - id: 2.5
+    description: "Ensure aufs storage driver is not used (Scored)"
+    audit: "grep 'driver =' /etc/containers/storage.conf"
+    tests:
+      test_items:
+      - flag: "aufs"
+        set: false
+    remediation: |
+      Do not explicitly use aufs as storage driver.
+    scored: true
+
+  - id: 2.7
+    description: "Ensure the default ulimit is configured appropriately (Not Scored)"
+    audit: "grep 'default_ulimits =' /etc/crio/crio.conf"
+    type: manual
+    tests:
+      test_items:
+      - flag: ""
+        set: true
+    remediation: |
+      Run the CRI-O in daemon mode and pass --default-ulimit as argument with respective
+      ulimits as appropriate in your environment.
+    scored: false
+
+  - id: 2.8
+    description: "Enable user namespace support (Scored)"
+    audit: "grep 'uid_mappings = ' /etc/crio/crio.conf"
+    tests:
+      test_items:
+      - flag: ""
+        set: true
+    remediation: |
+      Please consult the CRI-O documentation for various ways in which this can be configured
+      depending upon your requirements. Your steps might also vary based on platform - For
+      example, on Red Hat, sub-UIDs and sub-GIDs mapping creation do not work automatically.
+      You might have to create your own mapping.
+    scored: true
+
+  - id: 2.9
+    description: "Ensure the default cgroup usage has been confirmed (Scored)"
+    audit: "grep 'cgroup_manager' /etc/crio/crio.conf"
+    tests:
+      bin_op: or
+      test_items:
+      - flag: "cgroupfs"
+        set: true
+      - flag: "cgroupfs"
+        compare:
+          op: nothave
+          value: "cgroupfs"
+        set: false
+    remediation: |
+      The default setting is in line with good security practice and can be left in situ. If you wish
+      to specifically set a non-default cgroup.
+    scored: true
+
+  - id: 2.14
+    description: "Ensure Userland Proxy is Disabled (Scored)"
+    audit: "grep 'hairpinMode' /etc/cni/net.d/100-crio-bridge.conf"
+    tests:
+      test_items:
+      - flag: "true"
+        set: true
+    remediation: |
+      You should change your network bridge config settings "hairpinMode" to "true"
+    scored: true
+
+  - id: 2.15
+    description: "Ensure that a daemon-wide custom seccomp profile is applied if appropriate (Not Scored)"
+    audit: "grep 'seccomp_profile' /etc/crio/crio.conf"
+    tests:
+      test_items:
+      - flag: "profile"
+        compare:
+          op: nothave
+          value: ""
+        set: true
+    remediation: |
+      By default, CRI-O's default seccomp profile is applied. If this is adequate for your
+      environment, no action is necessary. Alternatively, if you choose to apply your own
+      seccomp profile, change the "seccomp_profile" configuration in /etc/crio/crio.conf
+    scored: false
+
+  - id: 2.17
+    description: "Ensure containers are restricted from acquiring new privileges (Scored)"
+    audit: "/usr/local/bin/crictl ps -a -q | xargs /usr/local/bin/crictl inspect | grep noNewPrivileges"
+    tests:
+      test_items:
+      - flag: "false"
+        set: false
+    remediation: |
+      Make sure you run new containers without giving them permissions to add new privileges
+    scored: true
+
+- id: 3
+  description: "Crio configuration files"
+  checks:
+  - id: 3.1
+    description: "The CRI-O benchmark checks if the crio.service file ownership is set to root:root."
+    audit: stat -c %U:%G /usr/lib/systemd/system/crio.service | grep root:root
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      If the file does not exist, this recommendation is not applicable. If the file does exists,
+      you should execute the below command with the correct file path to set the ownership and group
+      ownership and group for the file to root.
+      For example,
+      chown root:root /usr/lib/systemd/system/crio.service
+    scored: true
+
+  - id: 3.2
+    description: "The CRI-O benchmark checks if the crio.service file permissions are appropriately set. 
+    (Scored)"
+    audit: stat -c %a /usr/lib/systemd/system/crio.service
+    tests:
+      test_items:
+      - flag: "644"
+        compare:
+          op: bitmask
+          value: "644"
+        set: true
+    remediation: |
+      If the file does not exist, this recommendation is not applicable. If the file does exists,
+      you should execute the below command with the correct file path to set the ownership and group
+      ownership and group for the file to root.
+      For example,
+      chmod 644 /usr/lib/systemd/system/crio.service
+      Check if the value is equal or lower than 644.
+    scored: true
+
+  - id: 3.3
+    description: "The CRI-O benchmark checks if the crio.sock file ownership is set to root:root.(Scored)"
+    audit: stat -c %U:%G /var/run/crio/crio.sock | grep root:root
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      If the file does not exist, this recommendation is not applicable. If the file does exists,
+      you should execute the below command with the correct file path to set the ownership and group
+      ownership and group for the file to root.
+      For example,
+      chown root:root /var/run/crio/crio.sock
+    scored: true
+
+  - id: 3.4
+    description: "The CRI-O benchmark checks if the crio.socket file permissions are set to 644 or more 
+    restrictive. (Scored)"
+    audit: stat -c %a /var/run/crio/crio.sock
+    tests:
+      test_items:
+      - flag: "644"
+        compare:
+          op: bitmask
+          value: "644"
+        set: true
+    remediation: |
+      If the file does not exist, this recommendation is not applicable. If the file does exists,
+      you should execute the below command with the correct file path to set the ownership and group
+      ownership and group for the file to root.
+      For example,
+      chmod 644 /var/run/crio/crio.sock
+      Check if the value is equal or lower than 644.
+    scored: true
+
+  - id: 3.5
+    description: "The CRI-O benchmark checks if the /etc/crio directory ownership is set to root:root.
+    (Scored)"
+    audit: stat -c %U:%G /etc/crio | grep root:root
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      To resolve this issue you should run the following command:
+      chown root:root /etc/crio
+      This sets the ownership and group-ownership for the directory to root.
+    scored: true
+
+  - id: 3.6
+    description: "The CRI-O benchmark checks if the /etc/crio directory permissions is set to 755 or 
+    more restrictive.(Scored)"
+    audit: stat -c %a /etc/crio
+    tests:
+      test_items:
+      - flag: "755"
+        compare:
+          op: bitmask
+          value: "755"
+        set: true
+    remediation: |
+      You should run the following command:
+      chmod 755 /etc/crio
+      This sets the permissions for the directory to 755.
+      Check if the value is equal or lower than 755.
+    scored: true
+
+  - id: 3.7
+    description: "Ensure that registry certificate file ownership is set to root:root
+    (Scored)"
+    audit: stat -c %U:%G /etc/containers/registries.conf | grep root:root
+    tests:
+      test_items:
+      - flag: "root:root"
+        set: true
+    remediation: |
+      The following command could be executed:
+      chown root:root /etc/containers/registries.conf
+      This would set the ownership and group ownership for the registry configuration file to root .
+    scored: true
+
+  - id: 3.8
+    description: "Ensure that registry certificate file permissions are set to 444 or more restrictively 
+    (Scored)"
+    audit: stat -c %a /etc/containers/registries.conf
+    tests:
+      test_items:
+      - flag: "444"
+        compare:
+          op: bitmask
+          value: "444"
+        set: true
+    remediation: |
+      You should execute the following command:
+      chmod 444 /etc/containers/registries.conf
+      This would set the permissions for registry configuration file to 444.
+      Check if the value is equal or lower than 444.
+    scored: true
+    
+  - id: 3.20
+    description: "Ensure that the /etc/sysconfig/crio file ownership is set to root:root. 
+    (Scored)"
+    audit: stat -c %U:%G /etc/sysconfig/crio | grep root:root
+    tests:
+      test_items:
+      - flag: "root:root"
+        compare:
+          op: eq
+          value: "root:root"
+        set: true
+    remediation: |
+      You should execute the following command
+      chown root:root /etc/sysconfig/crio
+      This  sets the ownership and group-ownership for the file to root.
+    scored: true
+    
+  - id: 3.21
+    description: "Ensure that the /etc/sysconfig/crio file permissions is set to 
+    644 or more restrictive. (Scored)"
+    audit: stat -c %a /etc/sysconfig/crio
+    tests:
+      test_items:
+      - flag: "644"
+        compare:
+          op: bitmask
+          value: "644"
+        set: true
+    remediation: |
+      You should execute the following command:
+      chmod 644 /etc/sysconfig/crio
+      This sets the file permissions for this file to 644.
+      Check if the value is equal or lower than 644.
+    scored: true
+
+- id: 5
+  description: "Container Runtime Configuration"
+  checks:
+  - id: 5.1
+    description: "Ensure that, if applicable, an AppArmor Profile is enabled (Scored)"
+    audit: cat /etc/crio/crio.conf | grep apparmor_profile
+    tests:
+      test_items:
+      - flag: "unconfined"
+        set: false
+    remediation: |
+      If AppArmor is applicable for your Linux OS, you should enable it.
+      Alternatively, CRI-O's default AppArmor policy can be used. This policy is called "crio-default".
+      If the profile is set to "unconfined", then this equals to disabling AppArmor.
+    scored: true
+
+  - id: 5.2
+    description: "Ensure that, if applicable, SELinux security options are set(Scored)"
+    audit: cat /etc/crio/crio.conf | grep selinux
+    tests:
+      test_items:
+      - flag: "true"
+        set: true
+    remediation: |
+      If SELinux is applicable for your Linux OS, you should use it.
+    scored: true
+
+  - id: 5.3
+    description: "Ensure that Linux Kernel capabilities are restricted within containers
+    (Scored)"
+    type: manual
+    remediation: |
+      You should execute the command below to list capabilities per container:
+      /usr/local/bin/crictl ps -a -q | xargs /usr/local/bin/crictl inspect | jq .status.id,.info.runtimeSpec.process.capabilities
+      If there is an unnecessary capability you should remove it.
+    scored: true
+
+  - id: 5.4
+    description: "Ensure that privileged containers are not used (Scored)"
+    audit: /usr/local/bin/crictl pods -q | xargs /usr/local/bin/crictl inspectp | jq -jr '.status.id,":Privileged=",.info.runtimeSpec.annotations["io.kubernetes.cri-o.PrivilegedRuntime"],"\n"' | grep true
+    tests:
+      test_items:
+      - flag: ""
+        compare:
+          op: eq
+          value: ""
+        set: true
+    remediation: |
+      You should only run containers in privileged mode if you trust this workload. 
+    scored: true
+
+  - id: 5.5
+    description: "Ensure sensitive host system directories are not mounted on
+    containers (Scored)"
+    audit: /usr/local/bin/crictl ps -a -q | xargs /usr/local/bin/crictl inspect | jq -jr '.status|.id,":Volumes=",.mounts'
+    use_multiple_values: true
+    tests:
+      test_items:
+      - flag: "\"hostPath\": \"/\""
+        set: false
+      - flag: "\"hostPath\": \"/boot\""
+        set: false
+      - flag: "\"hostPath\": \"/dev\""
+        set: false
+      - flag: "\"hostPath\": \"/etc\""
+        set: false
+      - flag: "\"hostPath\": \"/lib\""
+        set: false
+      - flag: "\"hostPath\": \"/proc\""
+        set: false
+      - flag: "\"hostPath\": \"/sys\""
+        set: false
+      - flag: "\"hostPath\": \"/usr\""
+        set: false
+    remediation: |
+      You should not mount directories which are security sensitive on the host within
+      containers, especially in read-write mode.
+    scored: true
+
+  - id: 5.6
+    description: "Ensure sshd is not run within containers (Scored)"
+    type: manual
+    remediation: |
+      Uninstall the SSH daemon from the container and use crictl exec to enter a container
+      on the remote host.
+      crictl exec $INSTANCE_ID service sshd status
+    scored: true
+
+  - id: 5.7
+    description: "Ensure privileged ports are not mapped within containers (Scored)"
+    type: manual
+    audit: /usr/local/bin/crictl pods -q | xargs /usr/local/bin/crictl inspectp | jq -jr '.status.id,":",.info.runtimeSpec.annotations["io.kubernetes.cri-o.PortMappings"],"\n"'
+    remediation: |
+      You should not map container ports to privileged host ports when starting a container. You
+      should also, ensure that there is no such container to host privileged port mapping
+      declarations in the container. You can check this by running the following command:
+      crictl pods -q | xargs /usr/local/bin/crictl inspectp | jq -jr '.status.id,":",.info.runtimeSpec.annotations["io.kubernetes.cri-o.PortMappings"],"\n"'
+    scored: true
+
+  - id: 5.8
+    description: "Ensure that only needed ports are open on the container (Not Scored)"
+    type: manual
+    remediation: |
+      You should ensure that containers only expose needed ports. These settings are declared in the configuration.yaml file.
+    scored: false
+
+  - id: 5.12
+    description: "Ensure that the container's root filesystem is mounted as read only
+    (Scored)"
+    audit: /usr/local/bin/crictl pods -q | xargs /usr/local/bin/crictl inspectp | jq -jr '.status.id,":ReadonlyRootfs=",.info.runtimeSpec.root.readonly,"\n"'
+    use_multiple_values: true
+    tests:
+      test_items:
+      - flag: "ReadonlyRootfs=false"
+        set: false
+    remediation: |
+      This is a setting the container configuration .yaml file:
+      readOnlyRootFilesystem: true
+    scored: true
+
+  - id: 5.13
+    description: "Ensure that incoming container traffic is bound to a specific host
+    interface (Scored)"
+    audit: /usr/local/bin/crictl pods -q | xargs /usr/local/bin/crictl inspectp | jq -jr '.status.id,":[",.status.network.ip,"]\n"'
+    use_multiple_values: true
+    tests:
+      test_items:
+      - flag: "0.0.0.0"
+        set: false
+    remediation: |
+      You should bind the container port to a specific host interface on the desired host port.
+    scored: true
+
+  - id: 5.18
+    description: "Ensure that the default ulimit is overwritten at runtime, only if needed
+    (Not Scored)"
+    type: manual
+    remediation: |
+      You should only override the default ulimit settings if needed in a specific case. This can be set
+      in /etc/crio/crio.conf
+    scored: true
+
+  - id: 5.19
+    description: "Ensure mount propagation mode is not set to shared (Scored)"
+    audit: /usr/local/bin/crictl ps -a -q | xargs /usr/local/bin/crictl inspect | grep -i propagation | awk '{print $2}' 
+    use_multiple_values: true
+    tests:
+      test_items:
+      - flag: "\"PROPAGATION_PRIVATE\","
+        set: true
+    remediation: |
+      Do not mount volumes in shared mode propagation. 
+      In your container configuration, ensure that propagation is set to private.
+    scored: true
+
+  - id: 5.21
+    description: "Ensure the default seccomp profile is not Disabled (Scored)"
+    audit: /usr/local/bin/crictl ps -a -q | xargs /usr/local/bin/crictl inspect | grep -i seccompprofilepath 
+    use_multiple_values: true
+    tests:
+      test_items:
+      - flag: "\"io.kubernetes.cri-o.SeccompProfilePath\": \"\","
+        set: true 
+    remediation: |
+      By default, seccomp profiles are enabled. 
+      You do not need to do anything unless you want to modify and use a modified seccomp profile.
+    scored: true
+
+  - id: 5.24
+    description: "Ensure cgroup usage is confirmed (Scored)"
+    audit: cat /etc/crio/crio.conf | grep cgroup_manager
+    tests:
+      test_items:
+      - flag: "cgroupfs"
+        set: true
+    remediation: |
+      CRI-O uses the cgroupfs cgroup driver by default. 
+      If this is disabled change the cgroup_manager in crio.conf to cgroupfs.
+    scored: true
+
+  - id: 5.25
+    description: "Ensure that the container is restricted from acquiring additional privileges (Scored)"
+    audit: /usr/local/bin/crictl ps -a -q | xargs /usr/local/bin/crictl ps -a -q | xargs /usr/local/bin/crictl inspect | grep noNewPrivileges
+    use_multiple_values: true
+    tests:
+      test_items:
+      - flag: "true"
+        set: true
+    remediation: |
+      You should change your container configuration and set NoNewPrivileges to true.
+    scored: true
+
+  - id: 5.27
+    description: "Ensure that CRI-O containers make use of the latest version of their image (Not Scored)"
+    audit: /usr/local/bin/crictl ps | grep / | awk '{print $7}' | xargs /usr/local/bin/crictl images | awk 'NR>1 {print $2}'
+    use_multiple_values: true
+    tests:
+      test_items:
+      - flag: "latest"
+        set: true
+    remediation: |
+        You should use proper version pinning mechanisms (the "latest" tag which is assigned by
+        default is still vulnerable to caching attacks) to avoid extracting cached older versions.
+        Version pinning mechanisms should be used for base images, packages, and entire images.
+        You can customize version pinning rules according to your requirements.
+    scored: false
+
+  - id: 5.28
+    description: "Ensure that the PIDs cgroup limit is used (Scored)"
+    audit: /usr/local/bin/crictl ps -a -q | xargs /usr/local/bin/crictl inspect | grep -i -A 1 pids | awk '{print $2}' | tr -d \{ | sed '/^[[:space:]]*$/d'
+    use_multiple_values: true
+    tests:
+      test_items:
+      - flag: "0"
+        set: false
+      - flag: "max"
+        set: false
+    remediation: |
+        The PID limit should be used and shouldn't be set to max.
+        Configure the PID limit in your crio.conf file, the default is 1024.
+    scored: true
+
+  - id: 5.31
+    description: "Ensure that the CRI-O socket is not mounted inside any containers (Scored)"
+    audit: '/usr/local/bin/crictl ps -a -q | xargs /usr/local/bin/crictl inspect | grep -i "\"path\": \".*crio.sock\""'
+    tests:
+      test_items:
+      - flag: "crio.sock"
+        set: false
+    remediation: |
+      You should ensure that no containers mount crio.sock as a volume.
+      Remove any mounts pointing to crio.sock from your container configurations. 
+    scored: true
+
+- id: 6
+  description: "CRI-O Security Operations"
+  checks:
+  - id: 6.1
+    description: "Ensure that image sprawl is avoided (Not Scored)"
+    type: manual
+    remediation: |
+      You should keep only the images that you actually need and establish a workflow to
+      remove old or stale images from the host. 
+      You can follow the steps below to find unused images on the system so they can be deleted.
+      Step 1 Make a list of all image IDs that are currently instantiated by executing the
+      command below:
+      /usr/local/bin/crictl ps -a -q | xargs /usr/local/bin/crictl inspect | grep -i imagename
+      Step 2: List all the images present on the system by executing the command below:
+      crictl images
+      Step 3: Compare the list of image IDs from Step 1 and Step 2 and look for images that are
+      currently not in use. If any unused or old images are found, discuss with the system
+      administrator the need to keep such images on the system. If images are no longer needed
+      they should be deleted.
+    scored: false
+
+  - id: 6.2
+    description: "Ensure that container sprawl is avoided (Not Scored)"
+    type: manual
+    remediation: |
+      You should periodically check your container inventory on each host and clean up
+      containers which are not in active use. (E.g.: "crictl ps -a | grep -v Running" and review output)
+    scored: false

@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/aquasecurity/bench-common v0.4.7-0.20230816134523-b6528bb7bd9c
-	github.com/golang/glog v1.1.2
+	github.com/golang/glog v1.2.4
 	github.com/hashicorp/go-version v1.6.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.16.0
